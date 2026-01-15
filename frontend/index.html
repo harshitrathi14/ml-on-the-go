@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ML on the Go</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    <style>
+      :root {
+        --ink: #0b0f19;
+        --slate: #1d2433;
+        --mist: #f1f4f9;
+        --aqua: #3dd6c6;
+        --coral: #ff6f59;
+        --gold: #ffcb3c;
+        --deep: #0a3d62;
+        --card: rgba(255, 255, 255, 0.84);
+        --shadow: 0 24px 60px rgba(17, 24, 39, 0.16);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "IBM Plex Sans", sans-serif;
+        color: var(--ink);
+        background: radial-gradient(circle at top, #e9f6ff 0%, #fff 45%)
+            no-repeat,
+          linear-gradient(120deg, #f8f1ff 0%, #fff3ec 55%, #effffb 100%);
+        min-height: 100vh;
+      }
+
+      header {
+        padding: 48px 7vw 24px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      header::after {
+        content: "";
+        position: absolute;
+        width: 320px;
+        height: 320px;
+        right: -120px;
+        top: -80px;
+        background: radial-gradient(circle, rgba(61, 214, 198, 0.45), transparent 70%);
+        filter: blur(2px);
+        z-index: 0;
+      }
+
+      header::before {
+        content: "";
+        position: absolute;
+        width: 220px;
+        height: 220px;
+        left: 8vw;
+        top: -80px;
+        background: radial-gradient(circle, rgba(255, 203, 60, 0.35), transparent 70%);
+        z-index: 0;
+      }
+
+      .hero {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+        align-items: center;
+      }
+
+      .hero h1 {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: clamp(2.3rem, 3.2vw, 3.6rem);
+        margin: 0 0 12px;
+      }
+
+      .hero p {
+        font-size: 1.05rem;
+        max-width: 520px;
+        color: var(--slate);
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        background: rgba(11, 15, 25, 0.08);
+        border-radius: 999px;
+        font-size: 0.85rem;
+        margin-bottom: 16px;
+      }
+
+      main {
+        padding: 0 7vw 64px;
+      }
+
+      .panel {
+        background: var(--card);
+        border-radius: 24px;
+        padding: 24px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(12px);
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-top: 20px;
+      }
+
+      label {
+        display: block;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #55607a;
+        margin-bottom: 6px;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid #d6dce8;
+        font-size: 0.95rem;
+        font-family: "IBM Plex Sans", sans-serif;
+      }
+
+      .run-btn {
+        background: linear-gradient(135deg, var(--deep), #121826);
+        color: #fff;
+        border: none;
+        padding: 14px 24px;
+        border-radius: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 12px 24px rgba(10, 61, 98, 0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        width: 100%;
+      }
+
+      .run-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(10, 61, 98, 0.35);
+      }
+
+      .grid {
+        display: grid;
+        gap: 20px;
+        margin-top: 24px;
+      }
+
+      .stats {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .stat-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 16px;
+        border: 1px solid #e2e8f3;
+      }
+
+      .stat-card h3 {
+        margin: 0 0 6px;
+        font-size: 0.95rem;
+        color: #475069;
+      }
+
+      .stat-card p {
+        margin: 0;
+        font-size: 1.4rem;
+        font-weight: 600;
+      }
+
+      .leaderboard {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+
+      .leaderboard th,
+      .leaderboard td {
+        text-align: left;
+        padding: 10px 8px;
+        border-bottom: 1px solid #e4e8f2;
+      }
+
+      .leaderboard th {
+        color: #54607a;
+        font-weight: 600;
+      }
+
+      .split-badges {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .split-badge {
+        padding: 6px 12px;
+        background: #0b0f19;
+        color: #fff;
+        border-radius: 999px;
+        font-size: 0.8rem;
+      }
+
+      .chart {
+        height: 320px;
+      }
+
+      .loading {
+        display: none;
+        align-items: center;
+        gap: 12px;
+        margin-top: 12px;
+        color: #334155;
+        font-weight: 500;
+      }
+
+      .loading.active {
+        display: flex;
+      }
+
+      .pulse {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--aqua);
+        box-shadow: 0 0 0 rgba(61, 214, 198, 0.4);
+        animation: pulse 1.4s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(61, 214, 198, 0.5);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(61, 214, 198, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(61, 214, 198, 0);
+        }
+      }
+
+      @media (max-width: 720px) {
+        header {
+          padding: 36px 6vw 16px;
+        }
+
+        main {
+          padding: 0 6vw 48px;
+        }
+
+        .panel {
+          padding: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="hero">
+        <div>
+          <div class="badge">Live ML Ops Playground</div>
+          <h1>ML on the Go</h1>
+          <p>
+            Train, test, and compare loan default or investment decision models in
+            minutes. This sandbox auto-generates a realistic 100-feature dataset,
+            splits it into train/test/OOT/ETRC, and benchmarks multiple algorithms.
+          </p>
+        </div>
+        <div class="panel">
+          <h2>Run a fresh experiment</h2>
+          <div class="controls">
+            <div>
+              <label for="rows">Rows</label>
+              <input id="rows" type="number" min="500" value="5000" />
+            </div>
+            <div>
+              <label for="features">Features</label>
+              <input id="features" type="number" min="20" value="100" />
+            </div>
+            <div>
+              <label for="categories">Categorical</label>
+              <input id="categories" type="number" min="2" value="10" />
+            </div>
+            <div>
+              <label for="label-positive">Positive label</label>
+              <input id="label-positive" type="text" value="default" />
+            </div>
+            <div>
+              <label for="label-negative">Negative label</label>
+              <input id="label-negative" type="text" value="no_default" />
+            </div>
+            <div>
+              <label for="seed">Seed</label>
+              <input id="seed" type="number" value="42" />
+            </div>
+          </div>
+          <div style="margin-top: 16px">
+            <button class="run-btn" id="run-btn">Run Training</button>
+          </div>
+          <div class="loading" id="loading">
+            <span class="pulse"></span>
+            Training pipelines... hang tight.
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="grid">
+        <section class="panel">
+          <h2>Dataset Overview</h2>
+          <div class="stats" id="dataset-stats"></div>
+          <div class="split-badges" id="class-balance"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Leaderboard (Test ROC-AUC)</h2>
+          <table class="leaderboard" id="leaderboard"></table>
+        </section>
+
+        <section class="panel">
+          <h2>Model Metrics</h2>
+          <div id="metrics-chart" class="chart"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Top Feature Drivers</h2>
+          <div id="feature-chart" class="chart"></div>
+        </section>
+
+        <section class="panel">
+          <h2>ROC Curve (Test)</h2>
+          <div id="roc-chart" class="chart"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Confusion Matrix (Test)</h2>
+          <div id="confusion-chart" class="chart"></div>
+        </section>
+      </div>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

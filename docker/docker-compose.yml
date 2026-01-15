@@ -1,0 +1,60 @@
+# =============================================================================
+# ML on the Go - Local Development Environment
+# =============================================================================
+# docker-compose up -d
+# =============================================================================
+
+version: "3.9"
+
+services:
+  # ---------------------------------------------------------------------------
+  # Backend API
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile
+    container_name: mlotg-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=development
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ../backend:/app/backend:ro
+      - ../artifacts:/app/artifacts
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - mlotg-network
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Frontend (Static File Server)
+  # ---------------------------------------------------------------------------
+  frontend:
+    image: python:3.11-slim
+    container_name: mlotg-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../frontend:/app/frontend:ro
+    working_dir: /app
+    command: python -m http.server 5173 --directory frontend
+    depends_on:
+      - backend
+    networks:
+      - mlotg-network
+    restart: unless-stopped
+
+networks:
+  mlotg-network:
+    driver: bridge
+
+volumes:
+  artifacts:
+    driver: local
