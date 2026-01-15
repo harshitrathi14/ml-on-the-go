@@ -569,6 +569,193 @@ open http://localhost:5173
 
 ---
 
+# How to Run: Local Development
+
+## Step-by-Step Guide
+
+### Prerequisites
+- Python 3.9+ (3.11 recommended)
+- Git
+- 8GB+ RAM
+
+### Step 1: Clone Repository
+
+```bash
+git clone https://github.com/harshitrathi14/ml-on-the-go.git
+cd ml-on-the-go
+```
+
+---
+
+# How to Run: Local Development (cont.)
+
+### Step 2: Setup Python Environment
+
+```bash
+# Create virtual environment
+python -m venv .venv
+
+# Activate (macOS/Linux)
+source .venv/bin/activate
+
+# Activate (Windows)
+.venv\Scripts\activate
+```
+
+### Step 3: Install Dependencies
+
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+---
+
+# How to Run: Local Development (cont.)
+
+### Step 4: Start Backend Server
+
+```bash
+# Terminal 1: Start FastAPI backend
+uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Step 5: Start Frontend Server
+
+```bash
+# Terminal 2: Start static file server
+python -m http.server 5173 --directory frontend
+```
+
+### Step 6: Access Application
+
+| Service | URL |
+|---------|-----|
+| Dashboard | http://localhost:5173 |
+| API | http://localhost:8000 |
+| API Docs | http://localhost:8000/docs |
+
+---
+
+# How to Run: Docker Deployment
+
+## Production-Ready Containerization
+
+### Step 1: Navigate to Docker Directory
+
+```bash
+cd ml-on-the-go/docker
+```
+
+### Step 2: Build and Start
+
+```bash
+# Build and start all services
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Check status
+docker-compose ps
+```
+
+---
+
+# How to Run: Docker Deployment (cont.)
+
+### Step 3: Access Services
+
+| Service | URL | Port |
+|---------|-----|------|
+| Frontend Dashboard | http://localhost:5173 | 5173 |
+| Backend API | http://localhost:8000 | 8000 |
+| Swagger Docs | http://localhost:8000/docs | 8000 |
+
+### Step 4: Stop Services
+
+```bash
+# Stop containers
+docker-compose down
+
+# Stop and remove volumes
+docker-compose down -v
+```
+
+---
+
+# How to Run: Python Script
+
+## Programmatic Usage Without Web Server
+
+```python
+#!/usr/bin/env python3
+from backend.app.core.data.generator import FinancialDataGenerator
+from backend.app.core.models.trainer import train_models
+from sklearn.model_selection import train_test_split
+
+# 1. Generate data
+generator = FinancialDataGenerator()
+data = generator.generate()
+
+# 2. Prepare data
+X = data.drop('target', axis=1)
+y = data['target']
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42
+)
+
+# 3. Train models
+result = train_models(X_train, y_train, X_test, y_test)
+print(result.leaderboard)
+```
+
+---
+
+# How to Run: Verify Installation
+
+## Health Check Commands
+
+```bash
+# Check backend is running
+curl http://localhost:8000/health
+# Expected: {"status": "healthy"}
+
+# Test training endpoint
+curl -X POST http://localhost:8000/train \
+  -H "Content-Type: application/json" \
+  -d '{"n_samples": 1000, "n_features": 20}'
+```
+
+## Common Issues & Solutions
+
+| Problem | Solution |
+|---------|----------|
+| Port in use | `lsof -i :8000` then `kill -9 <PID>` |
+| Module not found | Activate venv: `source .venv/bin/activate` |
+| Memory error | Reduce `n_rows` in config |
+
+---
+
+# How to Run: Commands Reference
+
+## All-in-One Reference
+
+| Task | Command |
+|------|---------|
+| Clone repo | `git clone https://github.com/harshitrathi14/ml-on-the-go.git` |
+| Create venv | `python -m venv .venv` |
+| Activate (Mac/Linux) | `source .venv/bin/activate` |
+| Activate (Windows) | `.venv\Scripts\activate` |
+| Install deps | `pip install -r requirements.txt` |
+| Start backend | `uvicorn backend.app.main:app --reload --port 8000` |
+| Start frontend | `python -m http.server 5173 --directory frontend` |
+| Docker start | `cd docker && docker-compose up -d` |
+| Docker stop | `cd docker && docker-compose down` |
+| Run tests | `pytest backend/tests/ -v` |
+
+---
+
 # Thank You
 
 ## Questions?

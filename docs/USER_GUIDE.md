@@ -87,6 +87,322 @@ print(result.leaderboard)
 
 ---
 
+## How to Run This Application
+
+This section provides detailed instructions for running ML on the Go in different environments.
+
+### Option 1: Local Development (Recommended for Development)
+
+#### Prerequisites
+
+1. **Python 3.9+** installed (3.11+ recommended)
+2. **Git** for cloning the repository
+3. **8GB+ RAM** for handling large datasets
+
+#### Step-by-Step Instructions
+
+**Step 1: Clone the Repository**
+
+```bash
+git clone https://github.com/harshitrathi14/ml-on-the-go.git
+cd ml-on-the-go
+```
+
+**Step 2: Create Virtual Environment**
+
+```bash
+# Create virtual environment
+python -m venv .venv
+
+# Activate on macOS/Linux
+source .venv/bin/activate
+
+# Activate on Windows (Command Prompt)
+.venv\Scripts\activate.bat
+
+# Activate on Windows (PowerShell)
+.venv\Scripts\Activate.ps1
+```
+
+**Step 3: Install Dependencies**
+
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+**Step 4: Start the Backend API Server**
+
+```bash
+# Development mode with auto-reload
+uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Production mode with multiple workers
+uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --workers 4
+```
+
+**Step 5: Start the Frontend (in a new terminal)**
+
+```bash
+# Activate virtual environment first
+source .venv/bin/activate  # or Windows equivalent
+
+# Start static file server
+python -m http.server 5173 --directory frontend
+```
+
+**Step 6: Access the Application**
+
+- **Frontend Dashboard**: http://localhost:5173
+- **Backend API**: http://localhost:8000
+- **API Documentation**: http://localhost:8000/docs (Swagger UI)
+- **Health Check**: http://localhost:8000/health
+
+#### Verify Installation
+
+```bash
+# Test the health endpoint
+curl http://localhost:8000/health
+
+# Expected response:
+# {"status": "healthy"}
+```
+
+---
+
+### Option 2: Docker Deployment (Recommended for Production)
+
+#### Prerequisites
+
+1. **Docker** installed and running
+2. **Docker Compose** installed
+3. **4GB+ disk space** for images
+
+#### Step-by-Step Instructions
+
+**Step 1: Navigate to Docker Directory**
+
+```bash
+cd ml-on-the-go/docker
+```
+
+**Step 2: Build and Start Services**
+
+```bash
+# Build images and start containers in detached mode
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Check running services
+docker-compose ps
+```
+
+**Step 3: Access Services**
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| Frontend | http://localhost:5173 | Dashboard UI |
+| Backend API | http://localhost:8000 | REST API |
+| API Docs | http://localhost:8000/docs | Swagger documentation |
+
+**Step 4: Stop Services**
+
+```bash
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (clean slate)
+docker-compose down -v
+```
+
+#### Docker Commands Reference
+
+```bash
+# Rebuild specific service
+docker-compose build backend
+
+# View backend logs only
+docker-compose logs -f backend
+
+# Restart a service
+docker-compose restart backend
+
+# Scale backend workers
+docker-compose up -d --scale backend=3
+
+# Execute command in running container
+docker-compose exec backend python -c "print('Hello from container')"
+```
+
+---
+
+### Option 3: Python Script / Jupyter Notebook
+
+For programmatic usage without running the web server:
+
+**Step 1: Setup Environment**
+
+```bash
+cd ml-on-the-go
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+**Step 2: Run Python Script**
+
+```python
+#!/usr/bin/env python3
+"""Example: Complete ML Pipeline"""
+
+from backend.app.core.data.generator import FinancialDataGenerator
+from backend.app.core.models.trainer import train_models
+from backend.app.core.models.definitions import ModelType
+from backend.app.core.evaluation.metrics import compute_all_metrics
+
+# 1. Generate synthetic data
+print("Generating data...")
+generator = FinancialDataGenerator()
+data = generator.generate()
+print(f"Data shape: {data.shape}")
+
+# 2. Prepare features and target
+X = data.drop('target', axis=1)
+y = data['target']
+
+# 3. Simple train/test split
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42
+)
+
+# 4. Train models
+print("Training models...")
+result = train_models(
+    X_train, y_train,
+    X_test, y_test,
+    model_types=['lightgbm', 'xgboost', 'logistic']
+)
+
+# 5. View results
+print("\n=== LEADERBOARD ===")
+print(result.leaderboard.to_string())
+
+# 6. Get best model predictions
+best_model = result.models[ModelType.LIGHTGBM].model
+y_proba = best_model.predict_proba(X_test)[:, 1]
+metrics = compute_all_metrics(y_test, best_model.predict(X_test), y_proba)
+
+print(f"\n=== BEST MODEL METRICS ===")
+print(f"AUC-ROC:  {metrics.auc_roc:.4f}")
+print(f"KS Stat:  {metrics.ks_statistic:.4f}")
+print(f"Gini:     {metrics.gini:.4f}")
+```
+
+**Step 3: Run in Jupyter Notebook**
+
+```bash
+# Install Jupyter
+pip install jupyter
+
+# Start Jupyter
+jupyter notebook
+```
+
+Then create a new notebook and import the modules as shown above.
+
+---
+
+### Running the Web Dashboard
+
+Once both backend and frontend are running, the dashboard provides:
+
+1. **Dataset Generation**: Click "Generate Data" to create synthetic datasets
+2. **Model Training**: Configure and train multiple models
+3. **Results Visualization**: View ROC curves, feature importance, confusion matrix
+4. **Leaderboard**: Compare model performance
+
+#### Dashboard Workflow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     ML on the Go Dashboard                       │
+├─────────────────────────────────────────────────────────────────┤
+│  1. Configure Dataset                                            │
+│     └─ Set rows, features, default rate                         │
+│                                                                  │
+│  2. Generate & Train                                             │
+│     └─ Click "Run Training" button                              │
+│                                                                  │
+│  3. View Results                                                 │
+│     ├─ Leaderboard (model comparison)                           │
+│     ├─ ROC Curves (per model, per split)                        │
+│     ├─ Feature Importance (top 15)                              │
+│     └─ Confusion Matrix                                         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Common Commands Reference
+
+| Task | Command |
+|------|---------|
+| Start backend (dev) | `uvicorn backend.app.main:app --reload --port 8000` |
+| Start backend (prod) | `uvicorn backend.app.main:app --port 8000 --workers 4` |
+| Start frontend | `python -m http.server 5173 --directory frontend` |
+| Run with Docker | `cd docker && docker-compose up -d` |
+| Stop Docker | `cd docker && docker-compose down` |
+| Check API health | `curl http://localhost:8000/health` |
+| View API docs | Open http://localhost:8000/docs |
+| Run tests | `pytest backend/tests/ -v` |
+
+---
+
+### Environment Variables
+
+Create a `.env` file in the project root:
+
+```bash
+# Application environment
+APP_ENV=development          # development, staging, production
+LOG_LEVEL=DEBUG              # DEBUG, INFO, WARNING, ERROR
+
+# Server configuration
+HOST=0.0.0.0
+PORT=8000
+WORKERS=4
+
+# Model training defaults
+DEFAULT_CV_FOLDS=5
+DEFAULT_TUNING_TRIALS=50
+
+# Storage paths
+ARTIFACT_DIR=./artifacts
+LOG_DIR=./logs
+
+# Resource limits (for large datasets)
+OMP_NUM_THREADS=4
+OPENBLAS_NUM_THREADS=4
+```
+
+---
+
+### Troubleshooting Running Issues
+
+| Problem | Solution |
+|---------|----------|
+| Port 8000 already in use | `lsof -i :8000` then `kill -9 <PID>` or use `--port 8001` |
+| Port 5173 already in use | Use different port: `python -m http.server 5174 --directory frontend` |
+| Module not found errors | Ensure venv is activated: `source .venv/bin/activate` |
+| Permission denied (Docker) | Run with sudo or add user to docker group |
+| Slow startup | First run downloads models; subsequent runs are faster |
+| Memory errors | Reduce `n_rows` in data generation config |
+
+---
+
 ## System Requirements
 
 ### Minimum Requirements
