@@ -29,6 +29,14 @@ except Exception:  # pragma: no cover
     XGBClassifier = None
     HAS_XGBOOST = False
 
+try:  # pragma: no cover - optional dependency
+    from lightgbm import LGBMClassifier  # type: ignore
+
+    HAS_LIGHTGBM = True
+except Exception:  # pragma: no cover
+    LGBMClassifier = None
+    HAS_LIGHTGBM = False
+
 
 @dataclass
 class ModelMetrics:
@@ -91,32 +99,61 @@ def _build_preprocessor(categorical_features: List[str], numeric_features: List[
 
 
 def _make_models(seed: int = 42) -> Dict[str, object]:
+    """
+    Create all available ML models for training.
+
+    Models included:
+    - LogisticRegression: Interpretable baseline model
+    - RandomForest: Robust ensemble model
+    - GradientBoosting: Sklearn gradient boosting
+    - XGBoost: High-performance gradient boosting (if installed)
+    - LightGBM: Fast, memory-efficient gradient boosting (if installed)
+    """
     models = {
         "LogisticRegression": LogisticRegression(
             max_iter=400,
             solver="lbfgs",
+            random_state=seed,
         ),
         "RandomForest": RandomForestClassifier(
             n_estimators=200,
-            max_depth=None,
+            max_depth=10,
+            min_samples_split=5,
             random_state=seed,
             n_jobs=-1,
+        ),
+        "GradientBoosting": GradientBoostingClassifier(
+            n_estimators=100,
+            learning_rate=0.1,
+            max_depth=5,
+            random_state=seed,
         ),
     }
 
     if HAS_XGBOOST and XGBClassifier is not None:
         models["XGBoost"] = XGBClassifier(
-            n_estimators=250,
-            learning_rate=0.08,
-            max_depth=5,
-            subsample=0.9,
+            n_estimators=200,
+            learning_rate=0.1,
+            max_depth=6,
+            subsample=0.8,
             colsample_bytree=0.8,
             eval_metric="logloss",
+            use_label_encoder=False,
             random_state=seed,
-            n_jobs=4,
+            n_jobs=-1,
         )
-    else:
-        models["GradientBoosting"] = GradientBoostingClassifier(random_state=seed)
+
+    if HAS_LIGHTGBM and LGBMClassifier is not None:
+        models["LightGBM"] = LGBMClassifier(
+            n_estimators=200,
+            learning_rate=0.1,
+            max_depth=-1,
+            num_leaves=31,
+            min_child_samples=20,
+            random_state=seed,
+            n_jobs=-1,
+            verbose=-1,
+        )
 
     return models
 
