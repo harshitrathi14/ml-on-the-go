@@ -49,6 +49,19 @@ class Settings(BaseSettings):
     models_path: str = "./artifacts/models"
     data_path: str = "./artifacts/data"
 
+    # AI / LLM — multi-provider support
+    # Set AI_PROVIDER to: "claude", "openai", "gemini", "ollama", "lmstudio"
+    # If not set, auto-detected from whichever key/URL is present.
+    ai_provider: Optional[str] = Field(default=None, alias="AI_PROVIDER")
+    anthropic_api_key: Optional[str] = Field(default=None, alias="ANTHROPIC_API_KEY")
+    openai_api_key: Optional[str] = Field(default=None, alias="OPENAI_API_KEY")
+    gemini_api_key: Optional[str] = Field(default=None, alias="GEMINI_API_KEY")
+    # Ollama default: http://localhost:11434  |  LM Studio default: http://localhost:1234
+    ollama_base_url: str = Field(default="http://localhost:11434", alias="OLLAMA_BASE_URL")
+    lmstudio_base_url: str = Field(default="http://localhost:1234", alias="LMSTUDIO_BASE_URL")
+    # Override the default model for any provider (optional)
+    ai_model: Optional[str] = Field(default=None, alias="AI_MODEL")
+
     # Logging
     log_level: str = "INFO"
     log_format: str = "json"  # json or text

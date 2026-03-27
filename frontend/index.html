@@ -22,16 +22,13 @@
         --shadow: 0 24px 60px rgba(17, 24, 39, 0.16);
       }
 
-      * {
-        box-sizing: border-box;
-      }
+      * { box-sizing: border-box; }
 
       body {
         margin: 0;
         font-family: "IBM Plex Sans", sans-serif;
         color: var(--ink);
-        background: radial-gradient(circle at top, #e9f6ff 0%, #fff 45%)
-            no-repeat,
+        background: radial-gradient(circle at top, #e9f6ff 0%, #fff 45%) no-repeat,
           linear-gradient(120deg, #f8f1ff 0%, #fff3ec 55%, #effffb 100%);
         min-height: 100vh;
       }
@@ -45,11 +42,9 @@
       header::after {
         content: "";
         position: absolute;
-        width: 320px;
-        height: 320px;
-        right: -120px;
-        top: -80px;
-        background: radial-gradient(circle, rgba(61, 214, 198, 0.45), transparent 70%);
+        width: 320px; height: 320px;
+        right: -120px; top: -80px;
+        background: radial-gradient(circle, rgba(61,214,198,0.45), transparent 70%);
         filter: blur(2px);
         z-index: 0;
       }
@@ -57,11 +52,9 @@
       header::before {
         content: "";
         position: absolute;
-        width: 220px;
-        height: 220px;
-        left: 8vw;
-        top: -80px;
-        background: radial-gradient(circle, rgba(255, 203, 60, 0.35), transparent 70%);
+        width: 220px; height: 220px;
+        left: 8vw; top: -80px;
+        background: radial-gradient(circle, rgba(255,203,60,0.35), transparent 70%);
         z-index: 0;
       }
 
@@ -71,7 +64,7 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: 24px;
-        align-items: center;
+        align-items: start;
       }
 
       .hero h1 {
@@ -80,11 +73,7 @@
         margin: 0 0 12px;
       }
 
-      .hero p {
-        font-size: 1.05rem;
-        max-width: 520px;
-        color: var(--slate);
-      }
+      .hero p { font-size: 1.05rem; max-width: 520px; color: var(--slate); }
 
       .badge {
         display: inline-flex;
@@ -97,9 +86,40 @@
         margin-bottom: 16px;
       }
 
-      main {
-        padding: 0 7vw 64px;
+      /* ---- Tabs ---- */
+      .tab-bar {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 16px;
+        border-bottom: 2px solid #e2e8f3;
       }
+
+      .tab-btn {
+        padding: 8px 18px;
+        border: none;
+        border-bottom: 3px solid transparent;
+        background: transparent;
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        color: #6b7a99;
+        margin-bottom: -2px;
+        border-radius: 8px 8px 0 0;
+        transition: color 0.15s, border-color 0.15s;
+      }
+
+      .tab-btn.active {
+        color: var(--deep);
+        border-bottom-color: var(--deep);
+        background: rgba(10, 61, 98, 0.04);
+      }
+
+      .tab-panel { display: none; }
+      .tab-panel.active { display: block; }
+
+      /* ---- Controls panel ---- */
+      main { padding: 0 7vw 64px; }
 
       .panel {
         background: var(--card);
@@ -125,13 +145,14 @@
         margin-bottom: 6px;
       }
 
-      input {
+      input, select {
         width: 100%;
         padding: 10px 12px;
         border-radius: 12px;
         border: 1px solid #d6dce8;
         font-size: 0.95rem;
         font-family: "IBM Plex Sans", sans-serif;
+        background: #fff;
       }
 
       .run-btn {
@@ -152,6 +173,90 @@
         box-shadow: 0 16px 32px rgba(10, 61, 98, 0.35);
       }
 
+      .run-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .run-btn.secondary {
+        background: linear-gradient(135deg, #6c47ff, #3a1fa8);
+      }
+
+      .run-btn.accent {
+        background: linear-gradient(135deg, #0b6e4f, #09402e);
+      }
+
+      /* ---- CSV upload area ---- */
+      .upload-area {
+        border: 2px dashed #c3cfe2;
+        border-radius: 16px;
+        padding: 32px;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+        margin-bottom: 16px;
+      }
+
+      .upload-area:hover, .upload-area.dragover {
+        border-color: var(--aqua);
+        background: rgba(61, 214, 198, 0.04);
+      }
+
+      .upload-area input[type="file"] { display: none; }
+
+      .upload-icon { font-size: 2rem; margin-bottom: 8px; }
+
+      /* ---- AI Analysis card ---- */
+      #ai-analysis-card {
+        display: none;
+        margin-top: 20px;
+      }
+
+      .analysis-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .ai-meta-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      .chip-high   { background: #dcfce7; color: #15803d; }
+      .chip-medium { background: #fef9c3; color: #854d0e; }
+      .chip-low    { background: #fee2e2; color: #991b1b; }
+      .chip-info   { background: #e0f2fe; color: #0369a1; }
+
+      .quality-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+      .quality-pill {
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 500;
+      }
+
+      .pill-high   { background: #fee2e2; color: #991b1b; }
+      .pill-medium { background: #fef9c3; color: #854d0e; }
+      .pill-low    { background: #e0f2fe; color: #0369a1; }
+
+      .target-select-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        align-items: end;
+        margin-top: 16px;
+      }
+
+      /* ---- Results area ---- */
       .grid {
         display: grid;
         gap: 20px;
@@ -171,23 +276,10 @@
         border: 1px solid #e2e8f3;
       }
 
-      .stat-card h3 {
-        margin: 0 0 6px;
-        font-size: 0.95rem;
-        color: #475069;
-      }
+      .stat-card h3 { margin: 0 0 6px; font-size: 0.95rem; color: #475069; }
+      .stat-card p  { margin: 0; font-size: 1.4rem; font-weight: 600; }
 
-      .stat-card p {
-        margin: 0;
-        font-size: 1.4rem;
-        font-weight: 600;
-      }
-
-      .leaderboard {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.95rem;
-      }
+      .leaderboard { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
 
       .leaderboard th,
       .leaderboard td {
@@ -196,16 +288,9 @@
         border-bottom: 1px solid #e4e8f2;
       }
 
-      .leaderboard th {
-        color: #54607a;
-        font-weight: 600;
-      }
+      .leaderboard th { color: #54607a; font-weight: 600; }
 
-      .split-badges {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
+      .split-badges { display: flex; gap: 8px; flex-wrap: wrap; }
 
       .split-badge {
         padding: 6px 12px;
@@ -215,9 +300,7 @@
         font-size: 0.8rem;
       }
 
-      .chart {
-        height: 320px;
-      }
+      .chart { height: 320px; }
 
       .loading {
         display: none;
@@ -228,43 +311,77 @@
         font-weight: 500;
       }
 
-      .loading.active {
-        display: flex;
-      }
+      .loading.active { display: flex; }
 
       .pulse {
-        width: 10px;
-        height: 10px;
+        width: 10px; height: 10px;
         border-radius: 50%;
         background: var(--aqua);
-        box-shadow: 0 0 0 rgba(61, 214, 198, 0.4);
         animation: pulse 1.4s infinite;
       }
 
       @keyframes pulse {
-        0% {
-          box-shadow: 0 0 0 0 rgba(61, 214, 198, 0.5);
-        }
-        70% {
-          box-shadow: 0 0 0 10px rgba(61, 214, 198, 0);
-        }
-        100% {
-          box-shadow: 0 0 0 0 rgba(61, 214, 198, 0);
-        }
+        0%   { box-shadow: 0 0 0 0 rgba(61,214,198,0.5); }
+        70%  { box-shadow: 0 0 0 10px rgba(61,214,198,0); }
+        100% { box-shadow: 0 0 0 0 rgba(61,214,198,0); }
+      }
+
+      /* ---- Insights panel ---- */
+      #insights-panel { display: none; }
+
+      .insight-section { margin-bottom: 20px; }
+
+      .insight-section h3 {
+        font-family: "Space Grotesk", sans-serif;
+        margin: 0 0 10px;
+        font-size: 1rem;
+        color: var(--deep);
+      }
+
+      .insight-text {
+        background: #f8faff;
+        border-left: 3px solid var(--aqua);
+        padding: 12px 16px;
+        border-radius: 0 12px 12px 0;
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+
+      .insight-list {
+        list-style: none;
+        margin: 0; padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .insight-list li {
+        padding: 8px 14px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+
+      .insight-list.features li { background: #f0fdf4; border-left: 3px solid #22c55e; }
+      .insight-list.flags    li { background: #fff7ed; border-left: 3px solid #f97316; }
+      .insight-list.recs     li { background: #eff6ff; border-left: 3px solid #3b82f6; }
+
+      .explain-btn-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 12px;
+      }
+
+      .explain-btn-row .run-btn {
+        width: auto;
+        padding: 10px 20px;
       }
 
       @media (max-width: 720px) {
-        header {
-          padding: 36px 6vw 16px;
-        }
-
-        main {
-          padding: 0 6vw 48px;
-        }
-
-        .panel {
-          padding: 18px;
-        }
+        header { padding: 36px 6vw 16px; }
+        main   { padding: 0 6vw 48px; }
+        .panel { padding: 18px; }
+        .target-select-row { grid-template-columns: 1fr; }
       }
     </style>
   </head>
@@ -275,45 +392,112 @@
           <div class="badge">Live ML Ops Playground</div>
           <h1>ML on the Go</h1>
           <p>
-            Train, test, and compare loan default or investment decision models in
-            minutes. This sandbox auto-generates a realistic 100-feature dataset,
-            splits it into train/test/OOT/ETRC, and benchmarks multiple algorithms.
+            Train, test, and compare models in minutes. Use synthetic loan data or
+            upload your own CSV — AI will analyse the schema and guide you through
+            the training setup.
           </p>
         </div>
+
         <div class="panel">
-          <h2>Run a fresh experiment</h2>
-          <div class="controls">
-            <div>
-              <label for="rows">Rows</label>
-              <input id="rows" type="number" min="500" value="5000" />
+          <div class="tab-bar">
+            <button class="tab-btn active" onclick="switchTab('synthetic')">Synthetic Data</button>
+            <button class="tab-btn"        onclick="switchTab('csv')">Upload CSV</button>
+          </div>
+
+          <!-- ---- Tab: Synthetic ---- -->
+          <div id="tab-synthetic" class="tab-panel active">
+            <div class="controls">
+              <div>
+                <label for="rows">Rows</label>
+                <input id="rows" type="number" min="500" value="5000" />
+              </div>
+              <div>
+                <label for="features">Features</label>
+                <input id="features" type="number" min="20" value="100" />
+              </div>
+              <div>
+                <label for="categories">Categorical</label>
+                <input id="categories" type="number" min="2" value="10" />
+              </div>
+              <div>
+                <label for="label-positive">Positive label</label>
+                <input id="label-positive" type="text" value="default" />
+              </div>
+              <div>
+                <label for="label-negative">Negative label</label>
+                <input id="label-negative" type="text" value="no_default" />
+              </div>
+              <div>
+                <label for="seed">Seed</label>
+                <input id="seed" type="number" value="42" />
+              </div>
             </div>
-            <div>
-              <label for="features">Features</label>
-              <input id="features" type="number" min="20" value="100" />
+            <div style="margin-top:16px">
+              <button class="run-btn" id="run-btn">Run Training</button>
             </div>
-            <div>
-              <label for="categories">Categorical</label>
-              <input id="categories" type="number" min="2" value="10" />
-            </div>
-            <div>
-              <label for="label-positive">Positive label</label>
-              <input id="label-positive" type="text" value="default" />
-            </div>
-            <div>
-              <label for="label-negative">Negative label</label>
-              <input id="label-negative" type="text" value="no_default" />
-            </div>
-            <div>
-              <label for="seed">Seed</label>
-              <input id="seed" type="number" value="42" />
+            <div class="loading" id="loading">
+              <span class="pulse"></span>
+              Training pipelines... hang tight.
             </div>
           </div>
-          <div style="margin-top: 16px">
-            <button class="run-btn" id="run-btn">Run Training</button>
-          </div>
-          <div class="loading" id="loading">
-            <span class="pulse"></span>
-            Training pipelines... hang tight.
+
+          <!-- ---- Tab: Upload CSV ---- -->
+          <div id="tab-csv" class="tab-panel">
+            <div class="upload-area" id="upload-area" onclick="document.getElementById('csv-file-input').click()">
+              <input type="file" id="csv-file-input" accept=".csv" onchange="handleFileSelect(event)" />
+              <div class="upload-icon">📂</div>
+              <p style="margin:0;font-weight:600">Click to choose a CSV file</p>
+              <p style="margin:4px 0 0;font-size:0.85rem;color:#6b7a99">or drag &amp; drop · max 50 MB · min 100 rows</p>
+            </div>
+
+            <div style="margin-top:8px">
+              <button class="run-btn secondary" id="upload-btn" onclick="uploadCSV()" disabled>
+                Upload &amp; Analyse
+              </button>
+            </div>
+            <div class="loading" id="upload-loading">
+              <span class="pulse"></span>
+              Uploading and running AI analysis...
+            </div>
+
+            <!-- AI Analysis card -->
+            <div id="ai-analysis-card" class="panel" style="margin-top:20px;padding:20px">
+              <h3 style="margin-top:0">AI Analysis</h3>
+              <div class="analysis-grid" id="ai-meta-chips"></div>
+
+              <div id="ai-recommendation" class="insight-text" style="margin-bottom:16px"></div>
+
+              <div id="quality-issues-section" style="display:none">
+                <label>Data Quality Issues</label>
+                <div class="quality-pills" id="quality-pills"></div>
+              </div>
+
+              <div id="feature-notes-section" style="margin-top:12px">
+                <label>Feature Notes</label>
+                <ul class="insight-list features" id="feature-notes-list" style="margin-top:8px"></ul>
+              </div>
+
+              <div class="target-select-row" style="margin-top:20px">
+                <div>
+                  <label for="target-col-select">Target Column</label>
+                  <select id="target-col-select"></select>
+                </div>
+                <div>
+                  <label for="positive-class-input">Positive Class (optional)</label>
+                  <input id="positive-class-input" type="text" placeholder="e.g. 1, yes, default" />
+                </div>
+              </div>
+
+              <div style="margin-top:12px">
+                <button class="run-btn accent" id="train-csv-btn" onclick="trainCSV()">
+                  Confirm &amp; Train
+                </button>
+              </div>
+              <div class="loading" id="csv-train-loading">
+                <span class="pulse"></span>
+                Training on your data... this may take a minute.
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -330,6 +514,45 @@
         <section class="panel">
           <h2>Leaderboard (Test ROC-AUC)</h2>
           <table class="leaderboard" id="leaderboard"></table>
+          <div class="explain-btn-row" id="explain-btn-row" style="display:none">
+            <button class="run-btn secondary" style="width:auto;padding:10px 20px" onclick="explainResults()">
+              Explain with AI
+            </button>
+          </div>
+          <div class="loading" id="explain-loading" style="margin-top:8px">
+            <span class="pulse"></span>
+            Generating plain-English insights...
+          </div>
+        </section>
+
+        <!-- AI Insights panel -->
+        <section class="panel" id="insights-panel">
+          <h2>AI Insights</h2>
+
+          <div class="insight-section">
+            <h3>Executive Summary</h3>
+            <div class="insight-text" id="insight-summary"></div>
+          </div>
+
+          <div class="insight-section">
+            <h3>Best Model Analysis</h3>
+            <div class="insight-text" id="insight-best-model"></div>
+          </div>
+
+          <div class="insight-section">
+            <h3>Feature Insights</h3>
+            <ul class="insight-list features" id="insight-features"></ul>
+          </div>
+
+          <div class="insight-section">
+            <h3>Risk Flags</h3>
+            <ul class="insight-list flags" id="insight-flags"></ul>
+          </div>
+
+          <div class="insight-section">
+            <h3>Recommendations</h3>
+            <ul class="insight-list recs" id="insight-recs"></ul>
+          </div>
         </section>
 
         <section class="panel">
