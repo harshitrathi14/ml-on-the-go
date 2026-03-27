@@ -7,18 +7,19 @@ from typing import Any, Dict, List, Optional, Tuple
 import pandas as pd
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel, Field
 
 from .config import get_settings
 from .csv_session import csv_sessions
-from .data import DatasetSummary, generate_synthetic_dataset, split_dataset, summarize_dataset
-from .modeling import TrainingOutput, train_models
+from .data import generate_synthetic_dataset, split_dataset, summarize_dataset
+from .modeling import train_models
 
 # ---------------------------------------------------------------------------
 # App setup
 # ---------------------------------------------------------------------------
 
-app = FastAPI(title="ML on the Go", version="0.2.0")
+app = FastAPI(title="ML on the Go", version="0.3.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,14 +27,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# AI client — created once at startup
 _settings = get_settings()
-
 from .ai.factory import get_ai_client  # noqa: E402
 _ai_client = get_ai_client(_settings)
 
+
 # ---------------------------------------------------------------------------
-# Pydantic models — synthetic training
+# Pydantic models
 # ---------------------------------------------------------------------------
 
 
@@ -51,33 +51,12 @@ class TrainResponse(BaseModel):
     results: List[dict]
 
 
-# ---------------------------------------------------------------------------
-# Pydantic models — CSV upload + AI
-# ---------------------------------------------------------------------------
-
-
-class BinarizationStrategy(BaseModel):
-    strategy: str
+class TrainCSVRequest(BaseModel):
+    session_id: str
+    target_col: str
     positive_class: Optional[str] = None
     threshold: Optional[float] = None
-    notes: str = ""
-
-
-class DataQualityIssue(BaseModel):
-    column: str
-    issue_type: str
-    severity: str
-    description: str
-
-
-class AIAnalysis(BaseModel):
-    suggested_target_col: str
-    confidence: str
-    problem_type: str
-    binarization_strategy: BinarizationStrategy
-    data_quality_issues: List[DataQualityIssue] = []
-    feature_notes: List[str] = []
-    recommendation: str = ""
+    seed: int = 42
 
 
 class UploadCSVResponse(BaseModel):
@@ -86,14 +65,6 @@ class UploadCSVResponse(BaseModel):
     column_count: int
     columns: List[str]
     ai_analysis: Dict[str, Any]
-
-
-class TrainCSVRequest(BaseModel):
-    session_id: str
-    target_col: str
-    positive_class: Optional[str] = None
-    threshold: Optional[float] = None
-    seed: int = 42
 
 
 class ExplainRequest(BaseModel):
@@ -110,14 +81,26 @@ class ExplainResponse(BaseModel):
     recommendations: List[str]
 
 
+class ReportRequest(BaseModel):
+    leaderboard: List[dict]
+    results: List[dict]
+    dataset_summary: Optional[dict] = None
+    ai_insights: Optional[dict] = None
+
+
 # ---------------------------------------------------------------------------
-# Endpoints — original
+# Health
 # ---------------------------------------------------------------------------
 
 
 @app.get("/health")
 async def health() -> dict:
     return {"status": "ok"}
+
+
+# ---------------------------------------------------------------------------
+# Synthetic training
+# ---------------------------------------------------------------------------
 
 
 @app.post("/train", response_model=TrainResponse)
@@ -129,15 +112,11 @@ async def train(request: TrainRequest) -> TrainResponse:
         seed=request.seed,
         decision_labels=request.decision_labels,
     )
-    splits = split_dataset(df, seed=request.seed)
+    splits  = split_dataset(df, seed=request.seed)
     summary = summarize_dataset(splits, target_col="decision")
-    output = train_models(
-        splits.train,
-        splits.test,
-        splits.oot,
-        splits.etrc,
-        target_col="decision_binary",
-        seed=request.seed,
+    output  = train_models(
+        splits.train, splits.test, splits.oot, splits.etrc,
+        target_col="decision_binary", seed=request.seed,
     )
     return TrainResponse(
         dataset=asdict(summary),
@@ -147,18 +126,17 @@ async def train(request: TrainRequest) -> TrainResponse:
 
 
 # ---------------------------------------------------------------------------
-# Endpoints — CSV upload flow
+# CSV upload flow
 # ---------------------------------------------------------------------------
 
 
 @app.post("/upload-csv", response_model=UploadCSVResponse)
 async def upload_csv(file: UploadFile = File(...)) -> UploadCSVResponse:
-    # Guards
     if not (file.filename or "").lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only .csv files are accepted.")
 
     raw = await file.read()
-    if len(raw) > 50 * 1024 * 1024:  # 50 MB
+    if len(raw) > 50 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File exceeds 50 MB limit.")
 
     try:
@@ -172,7 +150,7 @@ async def upload_csv(file: UploadFile = File(...)) -> UploadCSVResponse:
         raise HTTPException(status_code=400, detail="CSV must have at least 2 columns.")
 
     ai_analysis = _ai_client.analyze_csv_metadata(df)
-    session_id = csv_sessions.create(df)
+    session_id  = csv_sessions.create(df)
 
     return UploadCSVResponse(
         session_id=session_id,
@@ -192,7 +170,7 @@ async def train_csv(request: TrainCSVRequest) -> TrainResponse:
             detail="Session not found or expired. Please re-upload the CSV.",
         )
 
-    df = session.df.copy()
+    df         = session.df.copy()
     target_col = request.target_col
 
     if target_col not in df.columns:
@@ -201,27 +179,21 @@ async def train_csv(request: TrainCSVRequest) -> TrainResponse:
             detail=f"Column '{target_col}' not found in uploaded CSV.",
         )
 
-    # --- Binarize target ---
-    series = df[target_col]
+    series      = df[target_col]
     unique_vals = series.dropna().unique()
 
     try:
         if set(unique_vals).issubset({0, 1, True, False, "0", "1"}):
-            # Already binary
             binary = series.map({True: 1, False: 0, 1: 1, 0: 0, "1": 1, "0": 0}).astype(int)
         elif request.positive_class is not None:
-            # label_encode / top_k_classes: 1 if value == positive_class
             binary = (series.astype(str) == str(request.positive_class)).astype(int)
         elif request.threshold is not None:
             binary = (pd.to_numeric(series, errors="coerce") > request.threshold).astype(int)
         else:
-            # Default: median threshold for numeric, else use most-frequent class as negative
             numeric = pd.to_numeric(series, errors="coerce")
             if numeric.notna().sum() > len(series) * 0.8:
-                median = float(numeric.median())
-                binary = (numeric > median).astype(int)
+                binary = (numeric > float(numeric.median())).astype(int)
             else:
-                # Categorical with no guidance: use most-frequent as 0, everything else as 1
                 most_common = series.value_counts().index[0]
                 binary = (series != most_common).astype(int)
     except Exception as exc:
@@ -233,21 +205,17 @@ async def train_csv(request: TrainCSVRequest) -> TrainResponse:
     if binary.nunique() != 2:
         raise HTTPException(
             status_code=400,
-            detail=f"Target column '{target_col}' could not be reduced to exactly 2 classes after binarization.",
+            detail=f"Target '{target_col}' could not be reduced to exactly 2 classes.",
         )
 
     df = df.drop(columns=[target_col])
     df["__target_binary__"] = binary
 
-    splits = split_dataset(df, target_col="__target_binary__", seed=request.seed)
+    splits  = split_dataset(df, target_col="__target_binary__", seed=request.seed)
     summary = summarize_dataset(splits, target_col="__target_binary__")
-    output = train_models(
-        splits.train,
-        splits.test,
-        splits.oot,
-        splits.etrc,
-        target_col="__target_binary__",
-        seed=request.seed,
+    output  = train_models(
+        splits.train, splits.test, splits.oot, splits.etrc,
+        target_col="__target_binary__", seed=request.seed,
     )
 
     return TrainResponse(
@@ -258,7 +226,7 @@ async def train_csv(request: TrainCSVRequest) -> TrainResponse:
 
 
 # ---------------------------------------------------------------------------
-# Endpoint — AI explanation
+# AI explanation
 # ---------------------------------------------------------------------------
 
 
@@ -270,3 +238,41 @@ async def explain(request: ExplainRequest) -> ExplainResponse:
         dataset_summary=request.dataset_summary,
     )
     return ExplainResponse(**result)
+
+
+# ---------------------------------------------------------------------------
+# Report generation
+# ---------------------------------------------------------------------------
+
+
+@app.post("/report/html")
+async def report_html(request: ReportRequest) -> HTMLResponse:
+    from .reporting import generate_html_report
+
+    html = generate_html_report(
+        leaderboard=request.leaderboard,
+        results=request.results,
+        dataset_summary=request.dataset_summary,
+        ai_insights=request.ai_insights,
+    )
+    return HTMLResponse(
+        content=html,
+        headers={"Content-Disposition": "attachment; filename=ml-report.html"},
+    )
+
+
+@app.post("/report/pdf")
+async def report_pdf(request: ReportRequest) -> Response:
+    from .reporting import generate_pdf_report
+
+    pdf_bytes = generate_pdf_report(
+        leaderboard=request.leaderboard,
+        results=request.results,
+        dataset_summary=request.dataset_summary,
+        ai_insights=request.ai_insights,
+    )
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=ml-report.pdf"},
+    )

@@ -32,6 +32,11 @@ structlog>=24.1
 joblib>=1.3
 python-dateutil>=2.8
 
+# Reporting
+matplotlib>=3.7
+reportlab>=4.0
+jinja2>=3.1
+
 # AI / LLM (all optional — install the ones you need)
 anthropic>=0.25
 openai>=1.0

@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0b0f19">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>ML on the Go</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        :root {
+            --ink: #0b0f19;
+            --aqua: #3dd6c6;
+            --coral: #ff6f59;
+            --gold: #ffcb3c;
+            --deep: #0a3d62;
+            --purple: #6c47ff;
+            --green: #0b6e4f;
+            --bg-card: rgba(255,255,255,0.05);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255,255,255,0.7);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--ink) 0%, #1a1f2e 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        /* ---- Header ---- */
+        .header { text-align: center; padding: 20px 0; margin-bottom: 16px; }
+        .header h1 {
+            font-size: 24px; font-weight: 700;
+            background: linear-gradient(90deg, var(--aqua), var(--gold));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+        .header p { color: var(--text-secondary); font-size: 13px; }
+
+        /* ---- Bottom nav ---- */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(11,15,25,0.95); backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex; z-index: 100;
+        }
+        .nav-item {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            padding: 10px 4px 14px; cursor: pointer; border: none;
+            background: transparent; color: var(--text-secondary); font-size: 10px; gap: 4px;
+            transition: color 0.2s;
+        }
+        .nav-item.active { color: var(--aqua); }
+        .nav-icon { font-size: 20px; }
+
+        /* ---- Screens ---- */
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* ---- Cards ---- */
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px; padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .card h2 { font-size: 15px; margin-bottom: 14px; color: var(--aqua); }
+
+        /* ---- Inputs ---- */
+        .input-group { margin-bottom: 14px; }
+        .input-group label { display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 5px; }
+        .input-group input, .input-group select {
+            width: 100%; padding: 12px; border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 15px;
+        }
+        .input-group input:focus, .input-group select:focus {
+            outline: none; border-color: var(--aqua);
+        }
+        .input-group select option { background: #1a1f2e; }
+
+        /* ---- Buttons ---- */
+        .btn {
+            width: 100%; padding: 15px; border-radius: 12px;
+            border: none; font-size: 15px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-aqua    { background: linear-gradient(90deg, var(--aqua), #2bc4b4); color: var(--ink); }
+        .btn-deep    { background: linear-gradient(90deg, var(--deep), #0c4d7a); color: white; }
+        .btn-purple  { background: linear-gradient(90deg, var(--purple), #4c1d95); color: white; }
+        .btn-green   { background: linear-gradient(90deg, var(--green), #09402e); color: white; }
+        .btn-coral   { background: linear-gradient(90deg, var(--coral), #e05a45); color: white; }
+        .btn:active  { transform: scale(0.97); }
+        .btn:disabled{ opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-sm      { padding: 12px 16px; font-size: 13px; }
+
+        .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+        .btn-row .btn { flex: 1; }
+
+        /* ---- Status ---- */
+        .status {
+            display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+            border-radius: 8px; margin-bottom: 14px; font-size: 13px;
+        }
+        .status.connected    { background: rgba(61,214,198,0.15); color: var(--aqua); }
+        .status.disconnected { background: rgba(255,111,89,0.15); color: var(--coral); }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; }
+        .status.connected .status-dot    { background: var(--aqua); }
+        .status.disconnected .status-dot { background: var(--coral); }
+
+        /* ---- Tabs ---- */
+        .tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .tab {
+            padding: 9px 14px; border-radius: 8px;
+            background: rgba(0,0,0,0.25); color: var(--text-secondary);
+            font-size: 13px; white-space: nowrap; cursor: pointer; border: none;
+        }
+        .tab.active { background: var(--aqua); color: var(--ink); font-weight: 600; }
+
+        /* ---- Loading / spinner ---- */
+        .loading { display: none; text-align: center; padding: 32px; }
+        .loading.active { display: block; }
+        .spinner {
+            width: 38px; height: 38px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--aqua);
+            border-radius: 50%; animation: spin 0.9s linear infinite;
+            margin: 0 auto 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading p { font-size: 13px; color: var(--text-secondary); margin-top: 6px; }
+
+        .hidden { display: none !important; }
+
+        /* ---- Leaderboard ---- */
+        .lb-item {
+            display: flex; align-items: center; padding: 11px;
+            border-radius: 8px; margin-bottom: 7px; background: rgba(0,0,0,0.2);
+        }
+        .lb-rank {
+            width: 26px; height: 26px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 11px; margin-right: 10px; flex-shrink: 0;
+        }
+        .rank-1 { background: var(--gold); color: var(--ink); }
+        .rank-2 { background: #c0c0c0; color: var(--ink); }
+        .rank-3 { background: #cd7f32; color: white; }
+        .rank-n { background: rgba(255,255,255,0.1); color: var(--text-secondary); }
+        .lb-info { flex: 1; }
+        .lb-model { font-weight: 600; font-size: 13px; }
+        .lb-score { font-size: 11px; color: var(--text-secondary); }
+        .lb-auc { font-size: 17px; font-weight: 700; color: var(--aqua); }
+
+        /* ---- Metrics grid ---- */
+        .metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
+        .metric-card { background: rgba(0,0,0,0.2); padding: 14px; border-radius: 10px; text-align: center; }
+        .metric-val  { font-size: 22px; font-weight: 700; color: var(--aqua); }
+        .metric-lbl  { font-size: 11px; color: var(--text-secondary); margin-top: 3px; }
+
+        /* ---- Splits table ---- */
+        .splits-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; }
+        .splits-table th { color: var(--text-secondary); font-weight: 600; padding: 6px 4px; text-align: center; }
+        .splits-table td { padding: 5px 4px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .splits-table td:first-child { text-align: left; font-weight: 500; }
+
+        /* ---- Chart containers ---- */
+        .chart-box { width: 100%; height: 280px; margin-top: 12px; }
+
+        /* ---- Upload / CSV ---- */
+        .upload-zone {
+            border: 2px dashed rgba(61,214,198,0.35);
+            border-radius: 14px; padding: 28px; text-align: center;
+            cursor: pointer; transition: border-color 0.2s, background 0.2s;
+            margin-bottom: 12px;
+        }
+        .upload-zone.dragover { border-color: var(--aqua); background: rgba(61,214,198,0.06); }
+        .upload-zone input { display: none; }
+        .upload-icon { font-size: 28px; margin-bottom: 8px; }
+        .upload-zone p { font-size: 13px; color: var(--text-secondary); }
+        .upload-zone .file-name { color: var(--aqua); font-weight: 600; font-size: 14px; }
+
+        /* ---- AI analysis card ---- */
+        .ai-card { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+        .ai-card h3 { font-size: 12px; color: var(--aqua); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+        .ai-card p, .ai-card li { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+        .ai-card ul { padding-left: 16px; }
+        .confidence-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+        .chip {
+            padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;
+        }
+        .chip-green  { background: rgba(22,163,74,.25);  color: #4ade80; }
+        .chip-yellow { background: rgba(217,119,6,.25);  color: #fbbf24; }
+        .chip-red    { background: rgba(220,38,38,.25);  color: #f87171; }
+        .chip-blue   { background: rgba(61,214,198,.15); color: var(--aqua); }
+
+        /* ---- Insights / Report screen ---- */
+        .insight-block { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+        .insight-block h3 { font-size: 12px; color: var(--aqua); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+        .insight-block p, .insight-block li { font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+        .insight-block ul { padding-left: 16px; }
+        .insight-block ul.flags li { color: #fbbf24; }
+        .insight-block ul.recs  li { color: #93c5fd; }
+
+        /* ---- Report progress ---- */
+        .progress-bar-wrap { background: rgba(255,255,255,0.08); border-radius: 999px; height: 5px; margin: 8px 0; overflow: hidden; }
+        .progress-bar { height: 100%; border-radius: 999px; background: var(--aqua); transition: width 0.4s ease; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>ML on the Go</h1>
+    <p>Financial Risk Analytics Platform</p>
+</div>
+
+<!-- ===================== SCREEN: SETUP ===================== -->
+<div class="screen active" id="screen-setup">
+    <div class="card">
+        <h2>Server</h2>
+        <div style="display:flex;gap:8px">
+            <input type="text" id="serverUrl" placeholder="http://192.168.x.x:8000"
+                   value="http://localhost:8000"
+                   style="flex:1;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,.2);
+                          background:rgba(0,0,0,.3);color:white;font-size:15px"/>
+            <button class="btn btn-aqua btn-sm" style="width:auto;padding:12px 14px" onclick="checkConnection()">
+                Connect
+            </button>
+        </div>
+        <div id="connectionStatus" class="status disconnected" style="margin-top:10px;margin-bottom:0">
+            <span class="status-dot"></span><span>Not connected</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Synthetic Training</h2>
+        <div class="input-group">
+            <label>Rows</label>
+            <input type="number" id="nRows" value="5000" min="500" max="50000">
+        </div>
+        <div class="input-group">
+            <label>Features</label>
+            <input type="number" id="nFeatures" value="50" min="20" max="200">
+        </div>
+        <div class="input-group">
+            <label>Categorical Features</label>
+            <input type="number" id="nCategorical" value="8" min="2" max="50">
+        </div>
+        <button class="btn btn-deep" id="trainBtn" onclick="runTraining()" disabled>
+            Train 5 Models
+        </button>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Training models...</p>
+        <p>LogReg · RF · GB · XGBoost · LightGBM</p>
+    </div>
+</div>
+
+<!-- ===================== SCREEN: CSV ===================== -->
+<div class="screen" id="screen-csv">
+    <div class="card">
+        <h2>Upload Your CSV</h2>
+        <div class="upload-zone" id="mobileUploadZone" onclick="document.getElementById('mobileFileInput').click()">
+            <input type="file" id="mobileFileInput" accept=".csv" onchange="handleMobileFile(event)">
+            <div class="upload-icon">📂</div>
+            <p class="file-name" id="mobileFileName">Tap to choose a CSV file</p>
+            <p style="margin-top:4px;font-size:11px">max 50 MB · min 100 rows</p>
+        </div>
+        <button class="btn btn-aqua" id="mobileUploadBtn" onclick="mobileUploadCSV()" disabled>
+            Upload &amp; Analyse
+        </button>
+        <div class="loading" id="mobileUploadLoading">
+            <div class="spinner"></div>
+            <p>Uploading and running AI analysis...</p>
+        </div>
+    </div>
+
+    <!-- AI analysis result -->
+    <div id="mobileAICard" class="card hidden">
+        <h2>AI Analysis</h2>
+        <div class="confidence-row" id="mobileChips"></div>
+        <div class="ai-card">
+            <h3>Recommendation</h3>
+            <p id="mobileRecommendation"></p>
+        </div>
+        <div class="ai-card" id="mobileQualitySection" style="display:none">
+            <h3>Quality Issues</h3>
+            <div id="mobileQualityChips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+        </div>
+        <div class="ai-card">
+            <h3>Feature Notes</h3>
+            <ul id="mobileFeatureNotes"></ul>
+        </div>
+        <div class="input-group" style="margin-top:12px">
+            <label>Target Column</label>
+            <select id="mobileTargetCol"></select>
+        </div>
+        <div class="input-group">
+            <label>Positive Class (optional)</label>
+            <input type="text" id="mobilePositiveClass" placeholder="e.g. 1, yes, default">
+        </div>
+        <button class="btn btn-green" id="mobileTrainBtn" onclick="mobileTrainCSV()">
+            Confirm &amp; Train
+        </button>
+        <div class="loading" id="mobileTrainLoading">
+            <div class="spinner"></div>
+            <p>Training on your data...</p>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== SCREEN: RESULTS ===================== -->
+<div class="screen" id="screen-results">
+    <div id="resultsArea" class="hidden">
+        <!-- Leaderboard -->
+        <div class="card">
+            <h2>Model Leaderboard</h2>
+            <div id="leaderboard"></div>
+        </div>
+
+        <!-- Best model metrics -->
+        <div class="card">
+            <h2>Best Model (Test Set)</h2>
+            <div id="metricsGrid" class="metrics-grid"></div>
+        </div>
+
+        <!-- All splits table -->
+        <div class="card">
+            <h2>Metrics by Split</h2>
+            <div class="tabs" id="modelTabs"></div>
+            <div id="splitMetricsContent"></div>
+        </div>
+
+        <!-- Charts -->
+        <div class="card">
+            <h2>Visualisations</h2>
+            <div class="tabs">
+                <button class="tab active" onclick="showChartTab('roc', this)">ROC</button>
+                <button class="tab"        onclick="showChartTab('metrics', this)">Metrics</button>
+                <button class="tab"        onclick="showChartTab('features', this)">Features</button>
+            </div>
+            <div id="rocChartBox"      class="chart-box"></div>
+            <div id="metricsChartBox"  class="chart-box hidden"></div>
+            <div id="featuresChartBox" class="chart-box hidden"></div>
+        </div>
+    </div>
+    <div id="noResults" style="text-align:center;padding:60px 20px;color:var(--text-secondary)">
+        <p style="font-size:32px">📊</p>
+        <p style="margin-top:12px">Run training first to see results.</p>
+    </div>
+</div>
+
+<!-- ===================== SCREEN: REPORT ===================== -->
+<div class="screen" id="screen-report">
+    <!-- AI Insights -->
+    <div class="card">
+        <h2>AI Insights</h2>
+        <div id="reportAIEmpty" style="color:var(--text-secondary);font-size:13px;text-align:center;padding:20px">
+            Run training, then tap "Get Insights" to generate AI analysis.
+        </div>
+        <div id="reportInsights" class="hidden">
+            <div class="insight-block">
+                <h3>Executive Summary</h3>
+                <p id="ri-summary"></p>
+            </div>
+            <div class="insight-block">
+                <h3>Best Model</h3>
+                <p id="ri-best"></p>
+            </div>
+            <div class="insight-block">
+                <h3>Feature Insights</h3>
+                <ul id="ri-features"></ul>
+            </div>
+            <div class="insight-block">
+                <h3>Risk Flags</h3>
+                <ul class="flags" id="ri-flags"></ul>
+            </div>
+            <div class="insight-block">
+                <h3>Recommendations</h3>
+                <ul class="recs" id="ri-recs"></ul>
+            </div>
+        </div>
+
+        <button class="btn btn-purple" id="explainBtn" onclick="mobileExplain()" style="margin-top:12px">
+            Get AI Insights
+        </button>
+        <div class="loading" id="explainLoading">
+            <div class="spinner"></div>
+            <p>Generating insights...</p>
+        </div>
+    </div>
+
+    <!-- Download reports -->
+    <div class="card">
+        <h2>Download Report</h2>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">
+            Export a full report with all metrics, charts, and AI insights embedded.
+        </p>
+        <div class="progress-bar-wrap" id="reportProgressWrap" style="display:none">
+            <div class="progress-bar" id="reportProgress" style="width:0%"></div>
+        </div>
+        <p id="reportStatusText" style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;display:none"></p>
+        <div class="btn-row">
+            <button class="btn btn-green btn-sm" id="htmlReportBtn" onclick="mobileDownloadReport('html')">
+                ⬇ HTML
+            </button>
+            <button class="btn btn-purple btn-sm" id="pdfReportBtn" onclick="mobileDownloadReport('pdf')">
+                ⬇ PDF
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== BOTTOM NAV ===================== -->
+<nav class="bottom-nav">
+    <button class="nav-item active" id="nav-setup"   onclick="switchScreen('setup')">
+        <span class="nav-icon">⚙️</span><span>Setup</span>
+    </button>
+    <button class="nav-item"        id="nav-csv"     onclick="switchScreen('csv')">
+        <span class="nav-icon">📂</span><span>CSV</span>
+    </button>
+    <button class="nav-item"        id="nav-results" onclick="switchScreen('results')">
+        <span class="nav-icon">📊</span><span>Results</span>
+    </button>
+    <button class="nav-item"        id="nav-report"  onclick="switchScreen('report')">
+        <span class="nav-icon">📄</span><span>Report</span>
+    </button>
+</nav>
+
+<script>
+// ============================================================
+// State
+// ============================================================
+let _serverUrl    = 'http://localhost:8000';
+let _trainingData = null;
+let _sessionId    = null;
+let _insights     = null;
+
+// ============================================================
+// Navigation
+// ============================================================
+function switchScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(`screen-${name}`).classList.add('active');
+    document.getElementById(`nav-${name}`).classList.add('active');
+}
+
+// ============================================================
+// Connection
+// ============================================================
+async function checkConnection() {
+    _serverUrl = document.getElementById('serverUrl').value.trim().replace(/\/$/, '');
+    const el = document.getElementById('connectionStatus');
+    try {
+        const r = await fetch(`${_serverUrl}/health`);
+        const d = await r.json();
+        if (d.status === 'ok') {
+            el.className = 'status connected';
+            el.innerHTML = '<span class="status-dot"></span><span>Connected</span>';
+            document.getElementById('trainBtn').disabled = false;
+            return true;
+        }
+    } catch {}
+    el.className = 'status disconnected';
+    el.innerHTML = '<span class="status-dot"></span><span>Connection failed</span>';
+    document.getElementById('trainBtn').disabled = true;
+    return false;
+}
+
+// ============================================================
+// Synthetic training
+// ============================================================
+async function runTraining() {
+    const loadingEl = document.getElementById('loading');
+    const trainBtn  = document.getElementById('trainBtn');
+    loadingEl.classList.add('active');
+    trainBtn.disabled = true;
+    try {
+        const res = await fetch(`${_serverUrl}/train`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                n_rows:        parseInt(document.getElementById('nRows').value),
+                n_features:    parseInt(document.getElementById('nFeatures').value),
+                n_categorical: parseInt(document.getElementById('nCategorical').value),
+                seed: 42,
+            }),
+        });
+        _trainingData = await res.json();
+        _insights = null;
+        _displayResults(_trainingData);
+        switchScreen('results');
+    } catch (e) {
+        alert('Training failed: ' + e.message);
+    } finally {
+        loadingEl.classList.remove('active');
+        trainBtn.disabled = false;
+    }
+}
+
+// ============================================================
+// CSV upload
+// ============================================================
+let _selectedFile = null;
+
+function handleMobileFile(e) {
+    _selectedFile = e.target.files[0] || null;
+    if (_selectedFile) {
+        document.getElementById('mobileFileName').textContent = _selectedFile.name;
+        document.getElementById('mobileUploadBtn').disabled = false;
+    }
+}
+
+// Drag-and-drop
+(function() {
+    const zone = document.getElementById('mobileUploadZone');
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', e => {
+        e.preventDefault(); zone.classList.remove('dragover');
+        const f = e.dataTransfer.files[0];
+        if (f) { _selectedFile = f; document.getElementById('mobileFileName').textContent = f.name;
+                 document.getElementById('mobileUploadBtn').disabled = false; }
+    });
+})();
+
+async function mobileUploadCSV() {
+    if (!_selectedFile) return;
+    document.getElementById('mobileUploadLoading').classList.add('active');
+    document.getElementById('mobileUploadBtn').disabled = true;
+    document.getElementById('mobileAICard').classList.add('hidden');
+    try {
+        const form = new FormData();
+        form.append('file', _selectedFile);
+        const res = await fetch(`${_serverUrl}/upload-csv`, { method: 'POST', body: form });
+        if (!res.ok) { const e = await res.json().catch(() => ({ detail: res.statusText })); throw new Error(e.detail); }
+        const data = await res.json();
+        _sessionId = data.session_id;
+        _renderMobileAI(data.ai_analysis, data.columns);
+    } catch (e) {
+        alert('Upload failed: ' + e.message);
+    } finally {
+        document.getElementById('mobileUploadLoading').classList.remove('active');
+        document.getElementById('mobileUploadBtn').disabled = false;
+    }
+}
+
+function _renderMobileAI(analysis, columns) {
+    document.getElementById('mobileAICard').classList.remove('hidden');
+
+    // Chips
+    const confColors = { high: 'chip-green', medium: 'chip-yellow', low: 'chip-red' };
+    document.getElementById('mobileChips').innerHTML = `
+        <span class="chip chip-blue">${analysis.problem_type || 'unknown'}</span>
+        <span class="chip ${confColors[analysis.confidence] || 'chip-blue'}">confidence: ${analysis.confidence || '?'}</span>
+        <span class="chip chip-blue">strategy: ${(analysis.binarization_strategy || {}).strategy || '?'}</span>
+    `;
+
+    document.getElementById('mobileRecommendation').textContent = analysis.recommendation || '';
+
+    // Quality issues
+    const issues = analysis.data_quality_issues || [];
+    const qSec = document.getElementById('mobileQualitySection');
+    if (issues.length) {
+        qSec.style.display = '';
+        document.getElementById('mobileQualityChips').innerHTML = issues.map(i => {
+            const c = i.severity === 'high' ? 'chip-red' : i.severity === 'medium' ? 'chip-yellow' : 'chip-blue';
+            return `<span class="chip ${c}" title="${i.description}">${i.column}: ${i.issue_type}</span>`;
+        }).join('');
+    } else {
+        qSec.style.display = 'none';
+    }
+
+    // Feature notes
+    document.getElementById('mobileFeatureNotes').innerHTML =
+        (analysis.feature_notes || []).map(n => `<li>${n}</li>`).join('');
+
+    // Target col dropdown
+    const sel = document.getElementById('mobileTargetCol');
+    sel.innerHTML = columns.map(c => `<option value="${c}">${c}</option>`).join('');
+    if (analysis.suggested_target_col && columns.includes(analysis.suggested_target_col))
+        sel.value = analysis.suggested_target_col;
+
+    if ((analysis.binarization_strategy || {}).positive_class)
+        document.getElementById('mobilePositiveClass').value = analysis.binarization_strategy.positive_class;
+}
+
+async function mobileTrainCSV() {
+    if (!_sessionId) { alert('No session. Please re-upload.'); return; }
+    const targetCol     = document.getElementById('mobileTargetCol').value;
+    const positiveClass = document.getElementById('mobilePositiveClass').value.trim() || null;
+    document.getElementById('mobileTrainLoading').classList.add('active');
+    document.getElementById('mobileTrainBtn').disabled = true;
+    try {
+        const payload = { session_id: _sessionId, target_col: targetCol, seed: 42 };
+        if (positiveClass) payload.positive_class = positiveClass;
+        const res = await fetch(`${_serverUrl}/train-csv`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        if (!res.ok) { const e = await res.json().catch(() => ({ detail: res.statusText })); throw new Error(e.detail); }
+        _trainingData = await res.json();
+        _insights = null;
+        _displayResults(_trainingData);
+        switchScreen('results');
+    } catch (e) {
+        alert('Training failed: ' + e.message);
+    } finally {
+        document.getElementById('mobileTrainLoading').classList.remove('active');
+        document.getElementById('mobileTrainBtn').disabled = false;
+    }
+}
+
+// ============================================================
+// Display results
+// ============================================================
+function _displayResults(data) {
+    document.getElementById('resultsArea').classList.remove('hidden');
+    document.getElementById('noResults').classList.add('hidden');
+
+    // Leaderboard
+    const lb = document.getElementById('leaderboard');
+    lb.innerHTML = data.leaderboard.map((m, i) => {
+        const rankClass = i < 3 ? `rank-${i+1}` : 'rank-n';
+        const medal = ['🥇','🥈','🥉'][i] || (i+1);
+        return `<div class="lb-item">
+            <div class="lb-rank ${rankClass}">${medal}</div>
+            <div class="lb-info">
+                <div class="lb-model">${m.model}</div>
+                <div class="lb-score">Test ROC-AUC</div>
+            </div>
+            <div class="lb-auc">${m.roc_auc.toFixed(4)}</div>
+        </div>`;
+    }).join('');
+
+    // Best model metrics grid
+    const best = data.results.find(r => r.name === data.leaderboard[0].model);
+    if (best) {
+        const tm = best.metrics.test;
+        document.getElementById('metricsGrid').innerHTML = [
+            ['ROC-AUC', (tm.roc_auc * 100).toFixed(1) + '%'],
+            ['F1 Score', (tm.f1 * 100).toFixed(1) + '%'],
+            ['Precision',(tm.precision * 100).toFixed(1) + '%'],
+            ['Recall',   (tm.recall * 100).toFixed(1) + '%'],
+        ].map(([l, v]) => `<div class="metric-card">
+            <div class="metric-val">${v}</div>
+            <div class="metric-lbl">${l}</div>
+        </div>`).join('');
+    }
+
+    // Splits table tabs
+    _buildSplitTabs(data.results);
+
+    // Charts
+    _plotROC(data);
+}
+
+function _buildSplitTabs(results) {
+    const tabsEl   = document.getElementById('modelTabs');
+    const contentEl = document.getElementById('splitMetricsContent');
+    tabsEl.innerHTML = results.map((r, i) =>
+        `<button class="tab ${i===0?'active':''}" onclick="_showSplitTable(${i}, this)">${r.name.replace(/(\w+)(\w{4})/, '$1')}</button>`
+    ).join('');
+    _renderSplitTable(results[0], contentEl);
+}
+
+function _showSplitTable(idx, btn) {
+    document.querySelectorAll('#modelTabs .tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    _renderSplitTable(window._trData ? window._trData[idx] : null,
+                      document.getElementById('splitMetricsContent'));
+}
+
+function _renderSplitTable(r, el) {
+    if (!r) return;
+    window._trData = (window._trData || []);
+    const splits = ['train','test','oot','etrc'];
+    const mkeys  = [['ROC-AUC','roc_auc'],['F1','f1'],['Prec','precision'],['Recall','recall']];
+    el.innerHTML = `<table class="splits-table">
+        <thead><tr><th>Metric</th>${splits.map(s=>`<th>${s.toUpperCase()}</th>`).join('')}</tr></thead>
+        <tbody>${mkeys.map(([lbl, mk]) =>
+            `<tr><td>${lbl}</td>${splits.map(sp => {
+                const m = (r.metrics || {})[sp] || {};
+                const v = (typeof m === 'object' && !Array.isArray(m)) ? (m[mk] ?? 0) : 0;
+                return `<td>${Number(v).toFixed(3)}</td>`;
+            }).join('')}</tr>`
+        ).join('')}</tbody>
+    </table>`;
+}
+
+// Keep results accessible for split table
+const _origDisplay = _displayResults;
+function _displayResults(data) {
+    window._trData = data.results;
+    _origDisplay(data);
+}
+
+// ============================================================
+// Charts
+// ============================================================
+let _activeChartTab = 'roc';
+
+function showChartTab(name, btn) {
+    _activeChartTab = name;
+    document.querySelectorAll('.chart-box').forEach(c => c.classList.add('hidden'));
+    document.querySelector('.card .tabs .tab.active')?.classList.remove('active');
+    btn.classList.add('active');
+    document.getElementById(`${name}ChartBox`).classList.remove('hidden');
+    if (name === 'metrics' && _trainingData) _plotMetrics(_trainingData);
+    if (name === 'features' && _trainingData) _plotFeatures(_trainingData);
+}
+
+const _COLORS = ['#3dd6c6','#ff6f59','#ffcb3c','#0a3d62','#6c47ff'];
+const _BG = 'transparent';
+const _FONT = { color: '#ffffff', size: 10 };
+const _AXIS = { gridcolor: 'rgba(255,255,255,0.08)' };
+
+function _plotROC(data) {
+    const traces = data.results.map((r, i) => ({
+        x: r.roc_curve.test.fpr, y: r.roc_curve.test.tpr,
+        name: `${r.name} (${r.metrics.test.roc_auc.toFixed(3)})`,
+        type: 'scatter', mode: 'lines',
+        line: { color: _COLORS[i % _COLORS.length], width: 2 },
+    }));
+    traces.push({ x:[0,1], y:[0,1], name:'Random', type:'scatter', mode:'lines',
+                  line:{ color:'rgba(255,255,255,0.2)', dash:'dash', width:1 } });
+    Plotly.newPlot('rocChartBox', traces, {
+        paper_bgcolor: _BG, plot_bgcolor: _BG, font: _FONT,
+        margin: {l:36,r:10,t:10,b:36},
+        xaxis: { title:'FPR', ..._AXIS, range:[0,1] },
+        yaxis: { title:'TPR', ..._AXIS, range:[0,1.02] },
+        legend: { x:0.5, y:-0.25, orientation:'h', font:{size:8} },
+    }, { responsive:true, displayModeBar:false });
+}
+
+function _plotMetrics(data) {
+    const models  = data.results.map(r => r.name);
+    const mkeys   = ['roc_auc','f1','precision','recall'];
+    const traces  = mkeys.map((mk, i) => ({
+        x: models, y: data.results.map(r => r.metrics.test[mk]),
+        name: mk.toUpperCase(), type: 'bar', marker: { color: _COLORS[i] },
+    }));
+    Plotly.newPlot('metricsChartBox', traces, {
+        paper_bgcolor: _BG, plot_bgcolor: _BG, font: _FONT, barmode: 'group',
+        margin: {l:36,r:10,t:10,b:60},
+        xaxis: { tickangle:-40, ..._AXIS },
+        yaxis: { range:[0,1.1], ..._AXIS },
+        legend: { orientation:'h', y:-0.35, font:{size:8} },
+    }, { responsive:true, displayModeBar:false });
+}
+
+function _plotFeatures(data) {
+    const best = data.results.find(r => r.name === data.leaderboard[0].model);
+    const fi   = (best?.feature_importance || []).slice(0,12);
+    if (!fi.length) {
+        document.getElementById('featuresChartBox').innerHTML =
+            '<p style="color:var(--text-secondary);padding:20px;text-align:center">No feature importance data.</p>';
+        return;
+    }
+    Plotly.newPlot('featuresChartBox', [{
+        x: fi.map(f => Math.abs(f.importance)).reverse(),
+        y: fi.map(f => f.feature).reverse(),
+        type: 'bar', orientation: 'h', marker: { color: '#ff6f59' },
+    }], {
+        paper_bgcolor: _BG, plot_bgcolor: _BG, font: _FONT,
+        margin: {l:100,r:10,t:10,b:30},
+        xaxis: { ..._AXIS }, yaxis: { tickfont:{size:9} },
+    }, { responsive:true, displayModeBar:false });
+}
+
+// ============================================================
+// AI Insights
+// ============================================================
+async function mobileExplain() {
+    if (!_trainingData) { alert('Run training first.'); return; }
+    document.getElementById('explainLoading').classList.add('active');
+    document.getElementById('explainBtn').disabled = true;
+    try {
+        const res = await fetch(`${_serverUrl}/explain`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                leaderboard: _trainingData.leaderboard,
+                results:     _trainingData.results,
+                dataset_summary: _trainingData.dataset,
+            }),
+        });
+        if (!res.ok) throw new Error((await res.json().catch(() => ({detail:res.statusText}))).detail);
+        _insights = await res.json();
+        _renderMobileInsights(_insights);
+    } catch (e) {
+        alert('Explain failed: ' + e.message);
+    } finally {
+        document.getElementById('explainLoading').classList.remove('active');
+        document.getElementById('explainBtn').disabled = false;
+    }
+}
+
+function _renderMobileInsights(data) {
+    document.getElementById('reportAIEmpty').classList.add('hidden');
+    document.getElementById('reportInsights').classList.remove('hidden');
+    document.getElementById('ri-summary').textContent = data.executive_summary || '';
+    document.getElementById('ri-best').textContent    = data.best_model_analysis || '';
+    const _li = (id, items) => {
+        document.getElementById(id).innerHTML = (items || []).map(t => `<li>${t}</li>`).join('');
+    };
+    _li('ri-features', data.feature_insights);
+    _li('ri-flags',    data.risk_flags);
+    _li('ri-recs',     data.recommendations);
+}
+
+// ============================================================
+// Report download
+// ============================================================
+async function mobileDownloadReport(format) {
+    if (!_trainingData) { alert('Run training first.'); return; }
+
+    const htmlBtn    = document.getElementById('htmlReportBtn');
+    const pdfBtn     = document.getElementById('pdfReportBtn');
+    const progressWr = document.getElementById('reportProgressWrap');
+    const progressBr = document.getElementById('reportProgress');
+    const statusTxt  = document.getElementById('reportStatusText');
+
+    htmlBtn.disabled = true;
+    pdfBtn.disabled  = true;
+    progressWr.style.display = '';
+    statusTxt.style.display  = '';
+
+    const label = format === 'pdf' ? 'Building PDF (charts + tables)...' : 'Building HTML report...';
+    statusTxt.textContent = label;
+    progressBr.style.width = '15%';
+
+    // Animate progress
+    let prog = 15;
+    const ticker = setInterval(() => {
+        prog = Math.min(prog + 5, 85);
+        progressBr.style.width = prog + '%';
+    }, 600);
+
+    try {
+        const payload = {
+            leaderboard:     _trainingData.leaderboard,
+            results:         _trainingData.results,
+            dataset_summary: _trainingData.dataset,
+            ai_insights:     _insights || null,
+        };
+        const res = await fetch(`${_serverUrl}/report/${format}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error((await res.json().catch(() => ({detail:res.statusText}))).detail);
+
+        clearInterval(ticker);
+        progressBr.style.width = '100%';
+        statusTxt.textContent = 'Report ready — opening...';
+
+        const blob = await res.blob();
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        const ts   = new Date().toISOString().slice(0,10);
+        a.href     = url;
+        a.download = `ml-report-${ts}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        setTimeout(() => {
+            progressWr.style.display = 'none';
+            statusTxt.style.display  = 'none';
+            progressBr.style.width   = '0%';
+        }, 2000);
+
+    } catch (e) {
+        clearInterval(ticker);
+        alert('Report failed: ' + e.message);
+        progressWr.style.display = 'none';
+        statusTxt.style.display  = 'none';
+    } finally {
+        htmlBtn.disabled = false;
+        pdfBtn.disabled  = false;
+    }
+}
+
+// ============================================================
+// Boot
+// ============================================================
+window.onload = () => checkConnection();
+</script>
+</body>
+</html>

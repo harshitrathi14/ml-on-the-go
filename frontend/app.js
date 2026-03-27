@@ -5,6 +5,7 @@ const BASE_URL = "http://localhost:8000";
 // ---------------------------------------------------------------------------
 let currentSessionId = null;
 let currentResults   = null;   // { leaderboard, results, dataset }
+let _lastInsights    = null;   // cached AI insights for embedding in reports
 
 // ---------------------------------------------------------------------------
 // Tab switching
@@ -236,12 +237,62 @@ function _applyResults(data) {
     renderFeatureImportance(bestModel);
     renderConfusion(bestModel);
   }
-  // Show "Explain with AI" button
+  // Show action buttons
   document.getElementById("explain-btn-row").style.display = "flex";
-  // Hide old insights
+  // Reset previous session insights
+  _lastInsights = null;
   document.getElementById("insights-panel").style.display = "none";
   // Scroll results into view
   document.getElementById("dataset-stats").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// ---------------------------------------------------------------------------
+// Report download
+// ---------------------------------------------------------------------------
+async function downloadReport(format) {
+  if (!currentResults) return;
+
+  const loadingText = document.getElementById("report-loading-text");
+  loadingText.textContent = format === "pdf"
+    ? "Building PDF report... this takes ~10 seconds."
+    : "Building HTML report...";
+  setLoading("report-loading", true);
+
+  try {
+    const payload = {
+      leaderboard: currentResults.leaderboard,
+      results: currentResults.results,
+      dataset_summary: currentResults.dataset,
+      // include AI insights if already fetched
+      ai_insights: _lastInsights || null,
+    };
+
+    const res = await fetch(`${BASE_URL}/report/${format}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(err.detail || res.statusText);
+    }
+
+    const blob   = await res.blob();
+    const url    = URL.createObjectURL(blob);
+    const a      = document.createElement("a");
+    const ts     = new Date().toISOString().slice(0, 10);
+    a.href       = url;
+    a.download   = `ml-report-${ts}.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert(`Report generation failed: ${err.message}`);
+  } finally {
+    setLoading("report-loading", false);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -276,6 +327,7 @@ async function explainResults() {
 }
 
 function renderInsights(data) {
+  _lastInsights = data;  // cache for report embedding
   document.getElementById("insight-summary").textContent    = data.executive_summary    || "";
   document.getElementById("insight-best-model").textContent = data.best_model_analysis  || "";
 

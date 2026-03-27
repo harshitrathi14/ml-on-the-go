@@ -369,6 +369,8 @@
       .explain-btn-row {
         display: flex;
         justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 10px;
         margin-top: 12px;
       }
 
@@ -518,10 +520,20 @@
             <button class="run-btn secondary" style="width:auto;padding:10px 20px" onclick="explainResults()">
               Explain with AI
             </button>
+            <button class="run-btn" style="width:auto;padding:10px 20px;background:linear-gradient(135deg,#0b6e4f,#09402e)" onclick="downloadReport('html')">
+              ⬇ HTML Report
+            </button>
+            <button class="run-btn" style="width:auto;padding:10px 20px;background:linear-gradient(135deg,#7c3aed,#4c1d95)" onclick="downloadReport('pdf')">
+              ⬇ PDF Report
+            </button>
           </div>
           <div class="loading" id="explain-loading" style="margin-top:8px">
             <span class="pulse"></span>
             Generating plain-English insights...
+          </div>
+          <div class="loading" id="report-loading" style="margin-top:8px">
+            <span class="pulse"></span>
+            <span id="report-loading-text">Building report...</span>
           </div>
         </section>
 
