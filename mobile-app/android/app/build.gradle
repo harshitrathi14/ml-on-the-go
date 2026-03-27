@@ -21,6 +21,15 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        debug {
+            // no suffix
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "ML-on-the-Go-v${defaultConfig.versionName}.apk"
+        }
     }
 }
 
