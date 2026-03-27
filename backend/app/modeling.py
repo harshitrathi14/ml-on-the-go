@@ -6,6 +6,7 @@ from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
@@ -87,15 +88,20 @@ def _make_encoder() -> OneHotEncoder:
 
 def _build_preprocessor(categorical_features: List[str], numeric_features: List[str]):
     encoder = _make_encoder()
-    numeric_pipeline = Pipeline(
-        steps=[("scaler", StandardScaler())],
-    )
-    return ColumnTransformer(
-        transformers=[
-            ("num", numeric_pipeline, numeric_features),
-            ("cat", encoder, categorical_features),
-        ]
-    )
+    numeric_pipeline = Pipeline(steps=[
+        ("imputer", SimpleImputer(strategy="median")),
+        ("scaler",  StandardScaler()),
+    ])
+    categorical_pipeline = Pipeline(steps=[
+        ("imputer", SimpleImputer(strategy="most_frequent")),
+        ("encoder", encoder),
+    ])
+    transformers = []
+    if numeric_features:
+        transformers.append(("num", numeric_pipeline, numeric_features))
+    if categorical_features:
+        transformers.append(("cat", categorical_pipeline, categorical_features))
+    return ColumnTransformer(transformers=transformers)
 
 
 def _make_models(seed: int = 42) -> Dict[str, object]:
