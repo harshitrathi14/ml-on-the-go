@@ -230,50 +230,371 @@
         /* ---- Report progress ---- */
         .progress-bar-wrap { background: rgba(255,255,255,0.08); border-radius: 999px; height: 5px; margin: 8px 0; overflow: hidden; }
         .progress-bar { height: 100%; border-radius: 999px; background: var(--aqua); transition: width 0.4s ease; }
+
+        /* ---- Home screen: hero ---- */
+        .hero { text-align: center; padding: 10px 0 20px; }
+        .hero-badge { display: inline-block; background: rgba(61,214,198,.15); color: var(--aqua);
+                      border: 1px solid rgba(61,214,198,.3); border-radius: 999px;
+                      font-size: 11px; font-weight: 700; padding: 4px 14px;
+                      letter-spacing: .07em; text-transform: uppercase; margin-bottom: 14px; }
+        .hero h1 { font-size: 28px; font-weight: 800; line-height: 1.2; margin-bottom: 10px; }
+        .hero h1 span { background: linear-gradient(90deg,var(--aqua),var(--gold));
+                        -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .hero p { font-size: 14px; color: var(--text-secondary); line-height: 1.65; margin-bottom: 20px; }
+        .hero-cta { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+        /* ---- Examples carousel ---- */
+        .examples-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px;
+                           scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        .examples-scroll::-webkit-scrollbar { display: none; }
+        .example-card { flex: 0 0 200px; background: rgba(255,255,255,.04);
+                        border: 1px solid rgba(255,255,255,.1); border-radius: 14px;
+                        padding: 14px; }
+        .example-icon { font-size: 26px; margin-bottom: 8px; }
+        .example-title { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+        .example-target { font-size: 11px; color: var(--aqua); font-weight: 600; margin-bottom: 8px; }
+        .example-vars { list-style: none; padding: 0; }
+        .example-vars li { font-size: 11px; color: var(--text-secondary); padding: 2px 0;
+                           display: flex; align-items: flex-start; gap: 5px; line-height: 1.4; }
+        .example-vars li::before { content: "·"; color: var(--aqua); flex-shrink: 0; }
+
+        /* ---- How it works ---- */
+        .steps { display: flex; flex-direction: column; gap: 12px; }
+        .step { display: flex; gap: 14px; align-items: flex-start; }
+        .step-num { width: 32px; height: 32px; border-radius: 50%; background: rgba(61,214,198,.15);
+                    border: 1px solid rgba(61,214,198,.4); display: flex; align-items: center;
+                    justify-content: center; font-size: 14px; font-weight: 700; color: var(--aqua);
+                    flex-shrink: 0; margin-top: 2px; }
+        .step-body h4 { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; }
+        .step-body p { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+        /* ---- Output tiles ---- */
+        .output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .output-tile { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+                       border-radius: 12px; padding: 12px; }
+        .output-tile-icon { font-size: 20px; margin-bottom: 6px; }
+        .output-tile-title { font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+        .output-tile-desc { font-size: 11px; color: var(--text-secondary); line-height: 1.45; }
+
+        /* ---- CSV format guide ---- */
+        .format-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .format-table { border-collapse: collapse; font-size: 11px; font-family: monospace;
+                        white-space: nowrap; width: 100%; }
+        .format-table th { background: rgba(61,214,198,.15); color: var(--aqua);
+                           padding: 6px 10px; border: 1px solid rgba(255,255,255,.1); font-size: 10px; }
+        .format-table td { padding: 5px 10px; border: 1px solid rgba(255,255,255,.06);
+                           color: var(--text-secondary); }
+        .format-table tr:nth-child(even) td { background: rgba(255,255,255,.02); }
+        .format-note { font-size: 11px; color: var(--text-secondary); margin-top: 8px; line-height: 1.5; }
+        .format-note strong { color: var(--aqua); }
+
+        /* ---- Report download cards ---- */
+        .dl-card { border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+        .dl-card.html-card { background: linear-gradient(135deg,rgba(61,214,198,.12),rgba(61,214,198,.04));
+                              border: 1px solid rgba(61,214,198,.25); }
+        .dl-card.pdf-card  { background: linear-gradient(135deg,rgba(108,71,255,.12),rgba(108,71,255,.04));
+                              border: 1px solid rgba(108,71,255,.25); }
+        .dl-card-icon { font-size: 28px; margin-bottom: 8px; }
+        .dl-card-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+        .dl-card-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px; }
+        .dl-card ul { padding-left: 16px; margin-bottom: 12px; }
+        .dl-card ul li { font-size: 12px; color: var(--text-secondary); padding: 2px 0; }
+
+        /* ---- Collapsible settings ---- */
+        .collapsible-header { display: flex; justify-content: space-between; align-items: center;
+                              cursor: pointer; padding: 4px 0; }
+        .collapsible-header h2 { margin-bottom: 0; }
+        .collapsible-arrow { font-size: 18px; color: var(--text-secondary); transition: transform .3s; }
+        .collapsible-arrow.open { transform: rotate(180deg); }
+        .collapsible-body { overflow: hidden; max-height: 0; transition: max-height .35s ease; }
+        .collapsible-body.open { max-height: 600px; }
     </style>
 </head>
 <body>
 
 <div class="header">
     <h1>ML on the Go</h1>
-    <p>Financial Risk Analytics Platform</p>
+    <p>ML for anyone. Upload data. Get predictions.</p>
 </div>
 
-<!-- ===================== SCREEN: SETUP ===================== -->
-<div class="screen active" id="screen-setup">
+<!-- ===================== SCREEN: HOME ===================== -->
+<div class="screen active" id="screen-home">
+
+    <!-- Hero -->
     <div class="card">
-        <h2>Server</h2>
-        <div style="display:flex;gap:8px">
-            <input type="text" id="serverUrl" placeholder="http://192.168.x.x:8000"
-                   value="http://localhost:8000"
-                   style="flex:1;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,.2);
-                          background:rgba(0,0,0,.3);color:white;font-size:15px"/>
-            <button class="btn btn-aqua btn-sm" style="width:auto;padding:12px 14px" onclick="checkConnection()">
-                Connect
-            </button>
-        </div>
-        <div id="connectionStatus" class="status disconnected" style="margin-top:10px;margin-bottom:0">
-            <span class="status-dot"></span><span>Not connected</span>
+        <div class="hero">
+            <div class="hero-badge">Open Source · No ML expertise needed</div>
+            <h1>ML for <span>anyone.</span></h1>
+            <p>Upload a CSV of your historical data. Five machine learning models train automatically and compete. You get predictions, feature importance, and a full shareable report — no coding required.</p>
+            <div class="hero-cta">
+                <button class="btn btn-aqua" style="width:auto;padding:12px 28px" onclick="switchScreen('csv')">
+                    Upload Your Data →
+                </button>
+            </div>
         </div>
     </div>
 
+    <!-- Real-world examples -->
     <div class="card">
-        <h2>Synthetic Training</h2>
-        <div class="input-group">
-            <label>Rows</label>
-            <input type="number" id="nRows" value="5000" min="500" max="50000">
+        <h2>Real-world examples</h2>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">
+            The real world is full of data. Every business has patterns waiting to be discovered.
+        </p>
+        <div class="examples-scroll">
+
+            <div class="example-card">
+                <div class="example-icon">☕</div>
+                <div class="example-title">Café Owner</div>
+                <div class="example-target">Predict: Order spike today?</div>
+                <ul class="example-vars">
+                    <li>Time brewing starts</li>
+                    <li>Playlist tempo (fast/slow)</li>
+                    <li>Weather + humidity</li>
+                    <li>WiFi sessions (dwell time)</li>
+                    <li>Nearby office attendance</li>
+                </ul>
+            </div>
+
+            <div class="example-card">
+                <div class="example-icon">🍢</div>
+                <div class="example-title">Street Vendor</div>
+                <div class="example-target">Predict: Peak sales day?</div>
+                <ul class="example-vars">
+                    <li>Time stall lights up</li>
+                    <li>Crowd density signal</li>
+                    <li>Nearby events / diversions</li>
+                    <li>Day of week + college calendar</li>
+                    <li>Rain probability</li>
+                </ul>
+            </div>
+
+            <div class="example-card">
+                <div class="example-icon">💪</div>
+                <div class="example-title">Gym Owner</div>
+                <div class="example-target">Predict: Member drop-off?</div>
+                <ul class="example-vars">
+                    <li>Check-in time variability</li>
+                    <li>Workout duration trend</li>
+                    <li>Gap between visits</li>
+                    <li>Trainer interaction frequency</li>
+                    <li>Class timing preferences</li>
+                </ul>
+            </div>
+
+            <div class="example-card">
+                <div class="example-icon">📚</div>
+                <div class="example-title">Tuition Teacher</div>
+                <div class="example-target">Predict: Score improvement?</div>
+                <ul class="example-vars">
+                    <li>Homework submission timing</li>
+                    <li>Class participation frequency</li>
+                    <li>Time per question</li>
+                    <li>Revision patterns pre-test</li>
+                    <li>Attendance consistency</li>
+                </ul>
+            </div>
+
+            <div class="example-card">
+                <div class="example-icon">🍰</div>
+                <div class="example-title">Home Baker</div>
+                <div class="example-target">Predict: Item sells out?</div>
+                <ul class="example-vars">
+                    <li>Time of Instagram post</li>
+                    <li>Engagement in first hour</li>
+                    <li>Day of week + payday cycle</li>
+                    <li>Repeat customer behaviour</li>
+                    <li>Delivery slot preferences</li>
+                </ul>
+            </div>
+
         </div>
-        <div class="input-group">
-            <label>Features</label>
-            <input type="number" id="nFeatures" value="50" min="20" max="200">
+        <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;text-align:center">
+            ← swipe to see all examples →
+        </p>
+    </div>
+
+    <!-- How it works -->
+    <div class="card">
+        <h2>How it works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-body">
+                    <h4>Upload your CSV</h4>
+                    <p>Your historical data — one row per event (sale, visit, order), one column per variable. Include the outcome you want to predict in one column.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-body">
+                    <h4>5 models train automatically</h4>
+                    <p>Logistic Regression, Random Forest, Gradient Boosting, XGBoost, and LightGBM all train in parallel. The best one is crowned champion on the leaderboard.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-body">
+                    <h4>Get your report</h4>
+                    <p>Feature importance tells you <em>why</em> the model predicts what it does. Download a full HTML or PDF report to share with anyone.</p>
+                </div>
+            </div>
         </div>
-        <div class="input-group">
-            <label>Categorical Features</label>
-            <input type="number" id="nCategorical" value="8" min="2" max="50">
+    </div>
+
+    <!-- What you get -->
+    <div class="card">
+        <h2>What you get</h2>
+        <div class="output-grid">
+            <div class="output-tile">
+                <div class="output-tile-icon">🏆</div>
+                <div class="output-tile-title">Model Leaderboard</div>
+                <div class="output-tile-desc">All 5 models ranked by ROC-AUC. See which one fits your data best.</div>
+            </div>
+            <div class="output-tile">
+                <div class="output-tile-icon">🔍</div>
+                <div class="output-tile-title">Key Drivers</div>
+                <div class="output-tile-desc">Top variables that drive the prediction — with plain-English explanations.</div>
+            </div>
+            <div class="output-tile">
+                <div class="output-tile-icon">📈</div>
+                <div class="output-tile-title">ROC Curve</div>
+                <div class="output-tile-desc">Visual proof of model performance. The closer to the top-left, the better.</div>
+            </div>
+            <div class="output-tile">
+                <div class="output-tile-icon">🧪</div>
+                <div class="output-tile-title">Stability Test</div>
+                <div class="output-tile-desc">Train / Test / OOT / ETRC — does the model hold up over time?</div>
+            </div>
+            <div class="output-tile">
+                <div class="output-tile-icon">📄</div>
+                <div class="output-tile-title">PDF Report</div>
+                <div class="output-tile-desc">Professional A4 report — print it or email it to your team.</div>
+            </div>
+            <div class="output-tile">
+                <div class="output-tile-icon">🌐</div>
+                <div class="output-tile-title">HTML Report</div>
+                <div class="output-tile-desc">Self-contained webpage with interactive charts. Works offline.</div>
+            </div>
+            <div class="output-tile">
+                <div class="output-tile-icon">🤖</div>
+                <div class="output-tile-title">AI Insights</div>
+                <div class="output-tile-desc">"Sales growth driven by evening activity" — plain language you can act on.</div>
+            </div>
+            <div class="output-tile">
+                <div class="output-tile-icon">⚡</div>
+                <div class="output-tile-title">Auto-preprocessing</div>
+                <div class="output-tile-desc">Missing values filled. Categories encoded. Dates cleaned. All automatic.</div>
+            </div>
         </div>
-        <button class="btn btn-deep" id="trainBtn" onclick="runTraining()" disabled>
-            Train 5 Models
-        </button>
+    </div>
+
+    <!-- Under the hood -->
+    <div class="card">
+        <h2>Under the hood — real ML</h2>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;line-height:1.6">
+            This isn't a toy. The same techniques used by data scientists in banks, retailers, and tech companies — made accessible to anyone.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;display:flex;gap:12px;align-items:center">
+                <span style="font-size:20px">📐</span>
+                <div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text-primary)">Logistic Regression</div>
+                    <div style="font-size:11px;color:var(--text-secondary)">Interpretable baseline — easy to explain to anyone</div>
+                </div>
+            </div>
+            <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;display:flex;gap:12px;align-items:center">
+                <span style="font-size:20px">🌲</span>
+                <div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text-primary)">Random Forest</div>
+                    <div style="font-size:11px;color:var(--text-secondary)">Captures non-linear interactions between variables</div>
+                </div>
+            </div>
+            <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;display:flex;gap:12px;align-items:center">
+                <span style="font-size:20px">⚡</span>
+                <div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text-primary)">LightGBM + XGBoost</div>
+                    <div style="font-size:11px;color:var(--text-secondary)">High-performance gradient boosting — often the winner</div>
+                </div>
+            </div>
+            <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;display:flex;gap:12px;align-items:center">
+                <span style="font-size:20px">🔀</span>
+                <div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text-primary)">60/20/10/10 split</div>
+                    <div style="font-size:11px;color:var(--text-secondary)">Train / Test / Out-of-Time / Stress-test — rigorous validation</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collapsible settings -->
+    <div class="card">
+        <div class="collapsible-header" onclick="toggleSettings()">
+            <h2>⚙️ Settings &amp; Connection</h2>
+            <span class="collapsible-arrow" id="settingsArrow">▼</span>
+        </div>
+        <div class="collapsible-body" id="settingsBody">
+            <div style="padding-top:14px">
+                <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">
+                    Connect to the ML on the Go backend server running on your machine or network.
+                </p>
+                <div style="display:flex;gap:8px;margin-bottom:10px">
+                    <input type="text" id="serverUrl" placeholder="http://192.168.x.x:8000"
+                           value="http://localhost:8000"
+                           style="flex:1;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,.2);
+                                  background:rgba(0,0,0,.3);color:white;font-size:13px"/>
+                    <button class="btn btn-aqua btn-sm" style="width:auto;padding:12px 14px" onclick="checkConnection()">
+                        Connect
+                    </button>
+                </div>
+                <div id="connectionStatus" class="status disconnected" style="margin-bottom:14px">
+                    <span class="status-dot"></span><span>Not connected</span>
+                </div>
+
+                <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:14px;margin-top:4px">
+                    <p style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">AI Provider (Optional)</p>
+                    <p style="font-size:11px;color:var(--text-secondary);margin-bottom:10px">Add an API key to unlock AI-powered plain-English insights. Without one, the app still fully trains and reports.</p>
+                    <div class="input-group">
+                        <label>Provider</label>
+                        <select id="aiProvider" onchange="toggleApiFields()">
+                            <option value="none">None — works without AI</option>
+                            <option value="claude">Anthropic Claude</option>
+                            <option value="openai">OpenAI (GPT)</option>
+                            <option value="gemini">Google Gemini</option>
+                            <option value="ollama">Ollama (local, free)</option>
+                            <option value="lmstudio">LM Studio (local, free)</option>
+                        </select>
+                    </div>
+                    <div id="apiKeySection" class="hidden">
+                        <div class="input-group">
+                            <label id="apiKeyLabel">API Key</label>
+                            <input type="password" id="apiKeyInput" placeholder="Paste your API key"
+                                   style="font-family:monospace;font-size:12px">
+                            <p id="apiKeyHint" style="font-size:11px;color:var(--text-secondary);margin-top:4px"></p>
+                        </div>
+                    </div>
+                    <div id="localUrlSection" class="hidden">
+                        <div class="input-group">
+                            <label id="localUrlLabel">Local Server URL</label>
+                            <input type="text" id="localUrlInput" placeholder="http://localhost:11434"
+                                   style="font-family:monospace;font-size:12px">
+                        </div>
+                    </div>
+                    <div id="aiModelSection" class="hidden">
+                        <div class="input-group">
+                            <label>Model override (optional)</label>
+                            <input type="text" id="aiModelInput" placeholder="Leave blank for default">
+                        </div>
+                    </div>
+                    <button class="btn btn-aqua btn-sm" style="margin-top:4px" onclick="saveAISettings()">
+                        Save Settings
+                    </button>
+                    <div id="aiSavedMsg" class="hidden"
+                         style="margin-top:8px;font-size:12px;color:#4ade80;text-align:center">
+                        ✓ Settings saved
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="loading" id="loading">
@@ -281,9 +602,11 @@
         <p>Training models...</p>
         <p>LogReg · RF · GB · XGBoost · LightGBM</p>
     </div>
+</div>
 
-    <!-- AI Provider Settings -->
-    <div class="card" id="aiSettingsCard">
+<!-- AI settings card that was previously standalone - now removed, settings are in Home screen -->
+<!-- Keeping a hidden placeholder so JS references don't break -->
+<div id="aiSettingsCard" style="display:none">
         <h2>AI Provider (Optional)</h2>
         <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">
             Add an API key to unlock AI-powered insights: plain-English explanations of model results,
@@ -344,34 +667,64 @@
 <!-- ===================== SCREEN: CSV ===================== -->
 <div class="screen" id="screen-csv">
 
-    <!-- Step 1: How to prepare your data -->
+    <!-- Format guide -->
     <div class="card" id="csvHowToCard">
-        <h2>Upload Historical Data</h2>
-        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">
-            Upload a CSV file with your historical data — one row per event
-            (transaction, customer, order, etc.) and one column per variable.
-            The model will learn from this data to predict outcomes for new records.
+        <h2>What your CSV should look like</h2>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;line-height:1.6">
+            One row per historical event (sale, visit, order, check-in…). One column per variable you track.
+            The last column (or any column) should be the <strong style="color:var(--aqua)">outcome you want to predict</strong> — like 1/0, yes/no, or a category.
         </p>
-        <div class="how-to-grid">
-            <div class="how-to-item">
-                <div class="how-icon">📋</div>
-                <div class="how-label">One row per record</div>
-                <div class="how-desc">Each row = one transaction, customer, or event</div>
-            </div>
-            <div class="how-to-item">
-                <div class="how-icon">📊</div>
-                <div class="how-label">All your variables</div>
-                <div class="how-desc">Include all features: amounts, dates, counts, categories</div>
-            </div>
-            <div class="how-to-item">
-                <div class="how-icon">🎯</div>
-                <div class="how-label">Outcome column</div>
-                <div class="how-desc">Must include the thing you want to predict (1/0 or category)</div>
-            </div>
-            <div class="how-to-item">
-                <div class="how-icon">📅</div>
-                <div class="how-label">Historical period</div>
-                <div class="how-desc">Ideally 6–24 months of history, min 100 rows</div>
+
+        <!-- Example: Gym member drop-off -->
+        <p style="font-size:11px;font-weight:700;color:var(--aqua);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">
+            Example — Gym member drop-off prediction
+        </p>
+        <div class="format-scroll">
+            <table class="format-table">
+                <thead>
+                    <tr>
+                        <th>member_id*</th><th>checkin_hour</th><th>gap_days</th><th>avg_duration_min</th><th>trainer_visits</th><th>classes_attended</th><th>dropped_off</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>M001</td><td>7</td><td>2</td><td>48</td><td>3</td><td>5</td><td>0</td></tr>
+                    <tr><td>M002</td><td>19</td><td>14</td><td>22</td><td>0</td><td>1</td><td>1</td></tr>
+                    <tr><td>M003</td><td>6</td><td>1</td><td>65</td><td>8</td><td>12</td><td>0</td></tr>
+                    <tr><td colspan="7" style="color:rgba(255,255,255,.3);text-align:center">… 100+ rows …</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="format-note">
+            * <strong>ID columns</strong> (member_id, order_id etc.) are automatically detected and removed — they're not useful for prediction.<br>
+            * <strong>Date columns</strong> are automatically parsed into day/month/year numbers.<br>
+            * <strong>Missing values</strong> are filled automatically (median for numbers, most frequent for categories).
+        </p>
+
+        <div style="border-top:1px solid rgba(255,255,255,.08);margin-top:14px;padding-top:14px">
+            <p style="font-size:11px;font-weight:700;color:var(--aqua);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">
+                More example column ideas
+            </p>
+            <div class="how-to-grid">
+                <div class="how-to-item">
+                    <div class="how-icon">☕</div>
+                    <div class="how-label">Café</div>
+                    <div class="how-desc">brew_start_hour, playlist_bpm, temp_celsius, wifi_sessions → spike_today</div>
+                </div>
+                <div class="how-to-item">
+                    <div class="how-icon">🍰</div>
+                    <div class="how-label">Home Baker</div>
+                    <div class="how-desc">post_hour, likes_1hr, day_of_week, repeat_customers → sold_out</div>
+                </div>
+                <div class="how-to-item">
+                    <div class="how-icon">📚</div>
+                    <div class="how-label">Tuition</div>
+                    <div class="how-desc">homework_submit_hr, participation_score, revision_days → score_improved</div>
+                </div>
+                <div class="how-to-item">
+                    <div class="how-icon">🍢</div>
+                    <div class="how-label">Street Vendor</div>
+                    <div class="how-desc">stall_open_hr, crowd_density, rain_prob, day_type → peak_sales</div>
+                </div>
             </div>
         </div>
     </div>
@@ -563,20 +916,47 @@
 
     <!-- Download reports -->
     <div class="card">
-        <h2>Download Report</h2>
-        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">
-            Export a full report with all metrics, charts, and AI insights embedded.
+        <h2>Download Your Report</h2>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;line-height:1.6">
+            Both reports contain all models, charts, feature importance, metric explanations, and AI insights — fully self-contained, shareable anywhere.
         </p>
+
         <div class="progress-bar-wrap" id="reportProgressWrap" style="display:none">
             <div class="progress-bar" id="reportProgress" style="width:0%"></div>
         </div>
         <p id="reportStatusText" style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;display:none"></p>
-        <div class="btn-row">
-            <button class="btn btn-green btn-sm" id="htmlReportBtn" onclick="mobileDownloadReport('html')">
-                ⬇ HTML
+
+        <div class="dl-card html-card">
+            <div class="dl-card-icon">🌐</div>
+            <div class="dl-card-title">HTML Report</div>
+            <div class="dl-card-desc">Self-contained webpage — open in any browser, works offline, share via WhatsApp or email. Includes interactive charts.</div>
+            <ul>
+                <li>✓ Target variable explained in plain English</li>
+                <li>✓ Model leaderboard + ROC curves</li>
+                <li>✓ Key drivers with business context</li>
+                <li>✓ Metric glossary (what is ROC-AUC?)</li>
+                <li>✓ Variable summary table</li>
+                <li>✓ AI insights (if API key set)</li>
+            </ul>
+            <button class="btn btn-green" id="htmlReportBtn" onclick="mobileDownloadReport('html')">
+                ⬇ Download HTML Report
             </button>
-            <button class="btn btn-purple btn-sm" id="pdfReportBtn" onclick="mobileDownloadReport('pdf')">
-                ⬇ PDF
+        </div>
+
+        <div class="dl-card pdf-card">
+            <div class="dl-card-icon">📄</div>
+            <div class="dl-card-title">PDF Report</div>
+            <div class="dl-card-desc">Professional A4 layout — print it, present it, or attach it to an email. Same content as HTML, formatted for paper.</div>
+            <ul>
+                <li>✓ Cover page with dataset name + best AUC</li>
+                <li>✓ Outcome table (what positive/negative means)</li>
+                <li>✓ Detailed key drivers table (top 15)</li>
+                <li>✓ Stability heatmap across time splits</li>
+                <li>✓ Per-model metrics across all 4 splits</li>
+                <li>✓ Business interpretation of top 5 features</li>
+            </ul>
+            <button class="btn btn-purple" id="pdfReportBtn" onclick="mobileDownloadReport('pdf')">
+                ⬇ Download PDF Report
             </button>
         </div>
     </div>
@@ -584,11 +964,11 @@
 
 <!-- ===================== BOTTOM NAV ===================== -->
 <nav class="bottom-nav">
-    <button class="nav-item active" id="nav-setup"   onclick="switchScreen('setup')">
-        <span class="nav-icon">⚙️</span><span>Setup</span>
+    <button class="nav-item active" id="nav-home"    onclick="switchScreen('home')">
+        <span class="nav-icon">🏠</span><span>Home</span>
     </button>
     <button class="nav-item"        id="nav-csv"     onclick="switchScreen('csv')">
-        <span class="nav-icon">📂</span><span>CSV</span>
+        <span class="nav-icon">📂</span><span>Upload</span>
     </button>
     <button class="nav-item"        id="nav-results" onclick="switchScreen('results')">
         <span class="nav-icon">📊</span><span>Results</span>
@@ -614,7 +994,16 @@ function switchScreen(name) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById(`screen-${name}`).classList.add('active');
-    document.getElementById(`nav-${name}`).classList.add('active');
+    const navBtn = document.getElementById(`nav-${name}`);
+    if (navBtn) navBtn.classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+function toggleSettings() {
+    const body  = document.getElementById('settingsBody');
+    const arrow = document.getElementById('settingsArrow');
+    body.classList.toggle('open');
+    arrow.classList.toggle('open');
 }
 
 // ============================================================
@@ -628,8 +1017,9 @@ async function checkConnection() {
         const d = await r.json();
         if (d.status === 'ok') {
             el.className = 'status connected';
-            el.innerHTML = '<span class="status-dot"></span><span>Connected</span>';
-            document.getElementById('trainBtn').disabled = false;
+            el.innerHTML = '<span class="status-dot"></span><span>Connected ✓</span>';
+            const tb = document.getElementById('trainBtn');
+            if (tb) tb.disabled = false;
             return true;
         }
     } catch {}
