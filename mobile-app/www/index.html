@@ -185,6 +185,26 @@
         .upload-zone p { font-size: 13px; color: var(--text-secondary); }
         .upload-zone .file-name { color: var(--aqua); font-weight: 600; font-size: 14px; }
 
+        /* ---- How-to grid ---- */
+        .how-to-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .how-to-item { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 12px; }
+        .how-icon { font-size: 22px; margin-bottom: 4px; }
+        .how-label { font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
+        .how-desc { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
+
+        /* ---- File preview stats ---- */
+        .preview-stat-row { display: flex; gap: 8px; }
+        .preview-stat { flex: 1; background: rgba(61,214,198,0.08); border-radius: 8px;
+                        padding: 8px; text-align: center; border: 1px solid rgba(61,214,198,0.2); }
+        .preview-val { display: block; font-size: 1.2rem; font-weight: 700; color: var(--aqua); }
+        .preview-lbl { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing:.04em; }
+
+        /* ---- Upload summary ---- */
+        .upload-summary { font-size: 13px; color: var(--text-secondary);
+                          background: rgba(0,0,0,0.2); border-radius: 8px;
+                          padding: 8px 12px; margin-bottom: 10px; }
+        .upload-summary span { color: var(--aqua); font-weight: 700; }
+
         /* ---- AI analysis card ---- */
         .ai-card { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
         .ai-card h3 { font-size: 12px; color: var(--aqua); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
@@ -261,57 +281,201 @@
         <p>Training models...</p>
         <p>LogReg · RF · GB · XGBoost · LightGBM</p>
     </div>
+
+    <!-- AI Provider Settings -->
+    <div class="card" id="aiSettingsCard">
+        <h2>AI Provider (Optional)</h2>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">
+            Add an API key to unlock AI-powered insights: plain-English explanations of model results,
+            automatic target column detection, and data quality analysis.
+            Without a key the app still trains and reports — just without AI commentary.
+        </p>
+
+        <div class="input-group">
+            <label>Provider</label>
+            <select id="aiProvider" onchange="toggleApiFields()">
+                <option value="none">None — Python-only (no AI)</option>
+                <option value="claude">Anthropic Claude</option>
+                <option value="openai">OpenAI (GPT)</option>
+                <option value="gemini">Google Gemini</option>
+                <option value="ollama">Ollama (local, free)</option>
+                <option value="lmstudio">LM Studio (local, free)</option>
+            </select>
+        </div>
+
+        <div id="apiKeySection" class="hidden">
+            <div class="input-group">
+                <label id="apiKeyLabel">API Key</label>
+                <input type="password" id="apiKeyInput"
+                       placeholder="Paste your API key here"
+                       style="font-family:monospace;font-size:13px">
+                <p id="apiKeyHint" style="font-size:11px;color:var(--text-secondary);margin-top:4px"></p>
+            </div>
+        </div>
+
+        <div id="localUrlSection" class="hidden">
+            <div class="input-group">
+                <label id="localUrlLabel">Local Server URL</label>
+                <input type="text" id="localUrlInput" placeholder="http://localhost:11434"
+                       style="font-family:monospace;font-size:13px">
+                <p style="font-size:11px;color:var(--text-secondary);margin-top:4px">
+                    Make sure Ollama / LM Studio is running on your local machine first.
+                </p>
+            </div>
+        </div>
+
+        <div id="aiModelSection" class="hidden">
+            <div class="input-group">
+                <label>Model (optional override)</label>
+                <input type="text" id="aiModelInput" placeholder="Leave blank for default">
+            </div>
+        </div>
+
+        <button class="btn btn-aqua btn-sm" style="margin-top:4px" onclick="saveAISettings()">
+            Save AI Settings
+        </button>
+        <div id="aiSavedMsg" class="hidden"
+             style="margin-top:8px;font-size:12px;color:#4ade80;text-align:center">
+            ✓ Settings saved — will be applied on next upload or training run
+        </div>
+    </div>
 </div>
 
 <!-- ===================== SCREEN: CSV ===================== -->
 <div class="screen" id="screen-csv">
+
+    <!-- Step 1: How to prepare your data -->
+    <div class="card" id="csvHowToCard">
+        <h2>Upload Historical Data</h2>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">
+            Upload a CSV file with your historical data — one row per event
+            (transaction, customer, order, etc.) and one column per variable.
+            The model will learn from this data to predict outcomes for new records.
+        </p>
+        <div class="how-to-grid">
+            <div class="how-to-item">
+                <div class="how-icon">📋</div>
+                <div class="how-label">One row per record</div>
+                <div class="how-desc">Each row = one transaction, customer, or event</div>
+            </div>
+            <div class="how-to-item">
+                <div class="how-icon">📊</div>
+                <div class="how-label">All your variables</div>
+                <div class="how-desc">Include all features: amounts, dates, counts, categories</div>
+            </div>
+            <div class="how-to-item">
+                <div class="how-icon">🎯</div>
+                <div class="how-label">Outcome column</div>
+                <div class="how-desc">Must include the thing you want to predict (1/0 or category)</div>
+            </div>
+            <div class="how-to-item">
+                <div class="how-icon">📅</div>
+                <div class="how-label">Historical period</div>
+                <div class="how-desc">Ideally 6–24 months of history, min 100 rows</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: File picker -->
     <div class="card">
-        <h2>Upload Your CSV</h2>
+        <h2>Step 1 — Choose Your File</h2>
         <div class="upload-zone" id="mobileUploadZone" onclick="document.getElementById('mobileFileInput').click()">
             <input type="file" id="mobileFileInput" accept=".csv" onchange="handleMobileFile(event)">
             <div class="upload-icon">📂</div>
             <p class="file-name" id="mobileFileName">Tap to choose a CSV file</p>
-            <p style="margin-top:4px;font-size:11px">max 50 MB · min 100 rows</p>
+            <p style="margin-top:4px;font-size:11px;color:var(--text-secondary)">
+                .csv format · max 50 MB · min 100 rows
+            </p>
         </div>
-        <button class="btn btn-aqua" id="mobileUploadBtn" onclick="mobileUploadCSV()" disabled>
+
+        <!-- File preview (shown after selection) -->
+        <div id="mobileFilePreview" class="hidden" style="margin-top:14px">
+            <div class="preview-stat-row">
+                <div class="preview-stat">
+                    <span class="preview-val" id="previewRows">–</span>
+                    <span class="preview-lbl">Rows</span>
+                </div>
+                <div class="preview-stat">
+                    <span class="preview-val" id="previewCols">–</span>
+                    <span class="preview-lbl">Columns</span>
+                </div>
+                <div class="preview-stat">
+                    <span class="preview-val" id="previewSize">–</span>
+                    <span class="preview-lbl">File size</span>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-aqua" id="mobileUploadBtn" onclick="mobileUploadCSV()" disabled style="margin-top:14px">
             Upload &amp; Analyse
         </button>
         <div class="loading" id="mobileUploadLoading">
             <div class="spinner"></div>
-            <p>Uploading and running AI analysis...</p>
+            <p>Uploading…</p>
+            <p style="font-size:12px;color:var(--text-secondary);margin-top:4px">Detecting variable types and data quality</p>
         </div>
     </div>
 
-    <!-- AI analysis result -->
+    <!-- Step 3: Analysis result + target selection -->
     <div id="mobileAICard" class="card hidden">
-        <h2>AI Analysis</h2>
-        <div class="confidence-row" id="mobileChips"></div>
-        <div class="ai-card">
-            <h3>Recommendation</h3>
-            <p id="mobileRecommendation"></p>
+        <h2>Step 2 — Review &amp; Configure</h2>
+
+        <!-- Upload summary -->
+        <div class="upload-summary" id="mobileUploadSummary">
+            <span id="summaryRows">–</span> rows ·
+            <span id="summaryCols">–</span> columns detected
         </div>
-        <div class="ai-card" id="mobileQualitySection" style="display:none">
-            <h3>Quality Issues</h3>
+
+        <!-- AI/auto analysis chips -->
+        <div class="confidence-row" id="mobileChips" style="margin:10px 0 6px"></div>
+
+        <div class="ai-card" style="margin-bottom:10px">
+            <h3>Recommendation</h3>
+            <p id="mobileRecommendation" style="font-size:13px;line-height:1.6"></p>
+        </div>
+
+        <div class="ai-card" id="mobileQualitySection" style="display:none;margin-bottom:10px">
+            <h3>Data Quality Flags</h3>
             <div id="mobileQualityChips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
         </div>
-        <div class="ai-card">
-            <h3>Feature Notes</h3>
-            <ul id="mobileFeatureNotes"></ul>
+
+        <div class="ai-card" style="margin-bottom:14px">
+            <h3>Variable Notes</h3>
+            <ul id="mobileFeatureNotes" style="padding-left:16px;font-size:13px;color:var(--text-secondary)"></ul>
         </div>
-        <div class="input-group" style="margin-top:12px">
-            <label>Target Column</label>
-            <select id="mobileTargetCol"></select>
+
+        <!-- Target column selection -->
+        <div style="background:#0d1b2a;border-radius:12px;padding:14px;margin-bottom:12px">
+            <div class="input-group" style="margin-bottom:10px">
+                <label style="font-size:12px;color:var(--aqua);font-weight:700;text-transform:uppercase;letter-spacing:.05em">
+                    What do you want to predict? (Target Column)
+                </label>
+                <select id="mobileTargetCol" style="margin-top:6px"></select>
+                <p style="font-size:11px;color:var(--text-secondary);margin-top:4px">
+                    Pick the column that contains the outcome (e.g. churned, high_value, stockout_risk)
+                </p>
+            </div>
+            <div class="input-group" style="margin-bottom:0">
+                <label style="font-size:12px;color:var(--aqua);font-weight:700;text-transform:uppercase;letter-spacing:.05em">
+                    Positive Class (optional)
+                </label>
+                <input type="text" id="mobilePositiveClass" placeholder="e.g.  1 · yes · default · churned"
+                       style="margin-top:6px">
+                <p style="font-size:11px;color:var(--text-secondary);margin-top:4px">
+                    Which value counts as the 'positive' outcome? Leave blank to auto-detect.
+                </p>
+            </div>
         </div>
-        <div class="input-group">
-            <label>Positive Class (optional)</label>
-            <input type="text" id="mobilePositiveClass" placeholder="e.g. 1, yes, default">
-        </div>
+
         <button class="btn btn-green" id="mobileTrainBtn" onclick="mobileTrainCSV()">
-            Confirm &amp; Train
+            Confirm &amp; Train Models
         </button>
         <div class="loading" id="mobileTrainLoading">
             <div class="spinner"></div>
-            <p>Training on your data...</p>
+            <p>Training 5 models on your data…</p>
+            <p style="font-size:12px;color:var(--text-secondary);margin-top:4px">
+                Logistic Regression · Random Forest · Gradient Boosting · XGBoost · LightGBM
+            </p>
         </div>
     </div>
 </div>
@@ -507,6 +671,67 @@ async function runTraining() {
 }
 
 // ============================================================
+// AI Settings
+// ============================================================
+function toggleApiFields() {
+    const provider = document.getElementById('aiProvider').value;
+    const keyHints = {
+        claude:   'Get your key at console.anthropic.com',
+        openai:   'Get your key at platform.openai.com/api-keys',
+        gemini:   'Get your key at aistudio.google.com',
+    };
+    const localDefaults = { ollama: 'http://localhost:11434', lmstudio: 'http://localhost:1234' };
+
+    const showKey   = ['claude','openai','gemini'].includes(provider);
+    const showLocal = ['ollama','lmstudio'].includes(provider);
+
+    document.getElementById('apiKeySection').classList.toggle('hidden', !showKey);
+    document.getElementById('localUrlSection').classList.toggle('hidden', !showLocal);
+    document.getElementById('aiModelSection').classList.remove('hidden');
+
+    if (showKey) {
+        document.getElementById('apiKeyLabel').textContent = provider === 'claude' ? 'Anthropic API Key'
+            : provider === 'openai' ? 'OpenAI API Key' : 'Google Gemini API Key';
+        document.getElementById('apiKeyHint').textContent = keyHints[provider] || '';
+    }
+    if (showLocal) {
+        document.getElementById('localUrlLabel').textContent = provider === 'ollama' ? 'Ollama URL' : 'LM Studio URL';
+        document.getElementById('localUrlInput').value = localDefaults[provider] || '';
+    }
+    if (provider === 'none') document.getElementById('aiModelSection').classList.add('hidden');
+}
+
+function saveAISettings() {
+    const provider = document.getElementById('aiProvider').value;
+    const apiKey   = document.getElementById('apiKeyInput').value.trim();
+    const localUrl = document.getElementById('localUrlInput').value.trim();
+    const model    = document.getElementById('aiModelInput').value.trim();
+    // Store in localStorage so the server URL can pass them as headers / env on next request
+    localStorage.setItem('ai_provider', provider);
+    if (apiKey)   localStorage.setItem('ai_api_key', apiKey);
+    if (localUrl) localStorage.setItem('ai_local_url', localUrl);
+    if (model)    localStorage.setItem('ai_model', model);
+
+    const saved = document.getElementById('aiSavedMsg');
+    saved.classList.remove('hidden');
+    setTimeout(() => saved.classList.add('hidden'), 3000);
+}
+
+// Restore AI settings on load
+(function restoreAISettings() {
+    const prov = localStorage.getItem('ai_provider');
+    if (prov) {
+        document.getElementById('aiProvider').value = prov;
+        toggleApiFields();
+        const key = localStorage.getItem('ai_api_key');
+        if (key) document.getElementById('apiKeyInput').value = key;
+        const url = localStorage.getItem('ai_local_url');
+        if (url) document.getElementById('localUrlInput').value = url;
+        const mdl = localStorage.getItem('ai_model');
+        if (mdl) document.getElementById('aiModelInput').value = mdl;
+    }
+})();
+
 // CSV upload
 // ============================================================
 let _selectedFile = null;
@@ -516,6 +741,13 @@ function handleMobileFile(e) {
     if (_selectedFile) {
         document.getElementById('mobileFileName').textContent = _selectedFile.name;
         document.getElementById('mobileUploadBtn').disabled = false;
+        // Show file size preview
+        const kb = Math.round(_selectedFile.size / 1024);
+        const sizeLabel = kb > 1024 ? (kb/1024).toFixed(1) + ' MB' : kb + ' KB';
+        document.getElementById('previewSize').textContent = sizeLabel;
+        document.getElementById('previewRows').textContent = '…';
+        document.getElementById('previewCols').textContent = '…';
+        document.getElementById('mobileFilePreview').classList.remove('hidden');
     }
 }
 
@@ -544,6 +776,13 @@ async function mobileUploadCSV() {
         if (!res.ok) { const e = await res.json().catch(() => ({ detail: res.statusText })); throw new Error(e.detail); }
         const data = await res.json();
         _sessionId = data.session_id;
+        // Update file preview stats
+        document.getElementById('previewRows').textContent = (data.row_count || '–').toLocaleString();
+        document.getElementById('previewCols').textContent = data.column_count || '–';
+        document.getElementById('mobileFilePreview').classList.remove('hidden');
+        // Update summary line
+        document.getElementById('summaryRows').textContent = (data.row_count || '–').toLocaleString();
+        document.getElementById('summaryCols').textContent = data.column_count || '–';
         _renderMobileAI(data.ai_analysis, data.columns);
     } catch (e) {
         alert('Upload failed: ' + e.message);

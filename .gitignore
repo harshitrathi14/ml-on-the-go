@@ -88,3 +88,15 @@ credentials.json
 node_modules/
 .next/
 out/
+
+# Generated report outputs (run input/run_and_report.py to regenerate)
+output/*.html
+output/*.pdf
+output/*.png
+
+# Android build artifacts (keep source, ignore compiled outputs)
+mobile-app/android/.gradle/
+mobile-app/android/app/build/
+mobile-app/android/build/
+mobile-app/android/captures/
+mobile-app/.gradle/
