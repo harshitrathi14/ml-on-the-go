@@ -19,7 +19,9 @@ from sklearn.metrics import (
 )
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
+
+import os
 
 
 try:  # pragma: no cover - optional dependency
@@ -37,6 +39,9 @@ try:  # pragma: no cover - optional dependency
 except Exception:  # pragma: no cover
     LGBMClassifier = None
     HAS_LIGHTGBM = False
+
+
+ROC_MAX_POINTS = 200
 
 
 @dataclass
@@ -80,10 +85,19 @@ def _get_feature_names(preprocessor: ColumnTransformer) -> List[str]:
 
 
 def _make_encoder() -> OneHotEncoder:
-    try:
-        return OneHotEncoder(handle_unknown="ignore", sparse_output=False)
-    except TypeError:  # pragma: no cover - sklearn<1.2 fallback
-        return OneHotEncoder(handle_unknown="ignore", sparse=False)
+    # High-cardinality text (pincodes, branch codes) would otherwise explode
+    # into thousands of columns; rare levels are pooled into one bucket.
+    return OneHotEncoder(
+        handle_unknown="infrequent_if_exist", max_categories=40, sparse_output=False
+    )
+
+
+def _gpu_available() -> bool:
+    """True when the process was given GPUs (CUDA_VISIBLE_DEVICES non-empty)."""
+    devices = os.environ.get("CUDA_VISIBLE_DEVICES")
+    if devices is None:
+        return os.path.exists("/dev/nvidia0")
+    return devices.strip() not in ("", "-1")
 
 
 def _build_preprocessor(categorical_features: List[str], numeric_features: List[str]):
@@ -128,10 +142,11 @@ def _make_models(seed: int = 42) -> Dict[str, object]:
             random_state=seed,
             n_jobs=-1,
         ),
-        "GradientBoosting": GradientBoostingClassifier(
-            n_estimators=100,
+        "HistGradientBoosting": HistGradientBoostingClassifier(
+            max_iter=200,
             learning_rate=0.1,
-            max_depth=5,
+            max_depth=6,
+            early_stopping=True,
             random_state=seed,
         ),
     }
@@ -144,8 +159,9 @@ def _make_models(seed: int = 42) -> Dict[str, object]:
             subsample=0.8,
             colsample_bytree=0.8,
             eval_metric="logloss",
-            use_label_encoder=False,
             random_state=seed,
+            tree_method="hist",
+            device="cuda" if _gpu_available() else "cpu",
             n_jobs=-1,
         )
 
@@ -202,6 +218,11 @@ def _evaluate_split(
     )
     conf = confusion_matrix(y, pred).tolist()
     fpr, tpr, _ = roc_curve(y, proba)
+    # On large splits the raw curve has one point per distinct score; keep the
+    # payload (sent to the browser and back for reports) small.
+    if len(fpr) > ROC_MAX_POINTS:
+        keep = np.unique(np.linspace(0, len(fpr) - 1, ROC_MAX_POINTS).astype(int))
+        fpr, tpr = fpr[keep], tpr[keep]
     roc_payload = {"fpr": [float(v) for v in fpr], "tpr": [float(v) for v in tpr]}
     return metrics, conf, roc_payload
 
@@ -217,12 +238,12 @@ def train_models(
     feature_cols = [
         col for col in train_df.columns if col not in {target_col, "decision"}
     ]
-    categorical_features = [
-        col for col in feature_cols if train_df[col].dtype == "object"
-    ]
+    # pandas 3 reads text as the "str" dtype, not "object", so test for numeric
+    # and treat everything else (str, object, category, bool-like text) as categorical.
     numeric_features = [
-        col for col in feature_cols if train_df[col].dtype != "object"
+        col for col in feature_cols if pd.api.types.is_numeric_dtype(train_df[col])
     ]
+    categorical_features = [col for col in feature_cols if col not in numeric_features]
 
     results: List[ModelResult] = []
     leaderboard: List[Dict[str, float]] = []
@@ -230,7 +251,15 @@ def train_models(
     for name, model in _make_models(seed).items():
         preprocessor = _build_preprocessor(categorical_features, numeric_features)
         pipeline = Pipeline(steps=[("preprocess", preprocessor), ("model", model)])
-        pipeline.fit(train_df[feature_cols], train_df[target_col])
+        try:
+            pipeline.fit(train_df[feature_cols], train_df[target_col])
+        except Exception as exc:
+            if name == "XGBoost" and getattr(model, "device", "cpu") == "cuda":
+                # GPU not usable in this process (driver, memory): retry on CPU.
+                model.set_params(device="cpu")
+                pipeline.fit(train_df[feature_cols], train_df[target_col])
+            else:
+                raise exc
 
         feature_names = _get_feature_names(pipeline.named_steps["preprocess"])
         importance = _extract_feature_importance(

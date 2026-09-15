@@ -100,3 +100,11 @@ mobile-app/android/app/build/
 mobile-app/android/build/
 mobile-app/android/captures/
 mobile-app/.gradle/
+
+# Local uploads / job state (production uses /mnt/harshitrathi/mlpipeline-data)
+mlpipeline-data/
+
+# Parallel implementation by another agent: its own git repository
+codex/
+# Generated multi-source test data (python input/generate_multisource.py)
+input/multisource/

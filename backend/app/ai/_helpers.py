@@ -135,7 +135,15 @@ def safe_parse(raw: str, fallback: dict) -> dict:
         if text.startswith("```"):
             lines = text.splitlines()
             text = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
-        return json.loads(text)
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            # Local models often wrap the JSON in prose or <think> blocks;
+            # take the outermost object.
+            start, end = text.find("{"), text.rfind("}")
+            if start == -1 or end <= start:
+                raise
+            return json.loads(text[start:end + 1])
     except (json.JSONDecodeError, ValueError) as exc:
         logger.warning("Failed to parse AI JSON response: %s", exc)
         return fallback

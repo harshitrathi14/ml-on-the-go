@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     )
 
     # Application
-    app_name: str = "ML on the Go"
+    app_name: str = "Nu Score On the Go"
     app_version: str = "1.0.0"
     app_env: str = Field(default="development", alias="APP_ENV")
     debug: bool = False
@@ -43,6 +43,15 @@ class Settings(BaseSettings):
     default_cv_folds: int = 5
     default_tuning_trials: int = 50
     tuning_timeout: Optional[int] = 600  # seconds
+
+    # Web deployment (served behind nginx at /MLPipeline)
+    brand_tagline: str = "Build ML models with your data"
+    root_path: str = Field(default="", alias="ROOT_PATH")
+
+    # Uploads and background jobs
+    data_root: str = Field(default="./mlpipeline-data", alias="DATA_ROOT")
+    max_upload_gb: float = Field(default=20.0, alias="MAX_UPLOAD_GB")
+    max_concurrent_jobs: int = Field(default=2, alias="MAX_CONCURRENT_JOBS")
 
     # Storage paths
     artifacts_path: str = "./artifacts"

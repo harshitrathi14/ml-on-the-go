@@ -1,0 +1,44 @@
+[Unit]
+Description=Nu Score On the Go — Build ML models with your data (FastAPI + training workers)
+After=network-online.target ollama.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nacl_pam_admin
+Group=nacl_pam_admin
+WorkingDirectory=/mnt/harshitrathi/ml-on-the-go
+EnvironmentFile=/etc/nuscore-otg.env
+Environment=PYTHONUNBUFFERED=1
+Environment=TZ=Asia/Kolkata
+Environment=TOKENIZERS_PARALLELISM=false
+Environment=MPLCONFIGDIR=/mnt/harshitrathi/mlpipeline-data/.mplconfig
+Environment=TMPDIR=/mnt/harshitrathi/mlpipeline-data/tmp
+# Single uvicorn worker: training runs in the app's own process pool, and the
+# job store is on disk, so more API workers are not needed.
+ExecStart=/mnt/harshitrathi/ml-on-the-go/.venv/bin/uvicorn backend.app.main:app \
+    --host 127.0.0.1 --port 8096 --proxy-headers --forwarded-allow-ips 127.0.0.1 \
+    --timeout-keep-alive 75
+Restart=always
+RestartSec=5
+Nice=5
+
+# Resource fences: the host is shared with other services. Two concurrent
+# training jobs at 16 threads each plus the API stay well inside these.
+MemoryMax=200G
+CPUQuota=4000%
+TasksMax=4096
+
+# Hardening (the service needs only its repo, its data dir and the GPUs).
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/mnt/harshitrathi/mlpipeline-data /mnt/harshitrathi/.hf-cache /mnt/harshitrathi/.pip-cache
+UMask=0077
+
+StandardOutput=append:/mnt/harshitrathi/mlpipeline-data/logs/api.log
+StandardError=append:/mnt/harshitrathi/mlpipeline-data/logs/api.log
+
+[Install]
+WantedBy=multi-user.target

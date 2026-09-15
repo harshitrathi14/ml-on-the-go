@@ -3,592 +3,1007 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ML on the Go</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    <title>Nu Score On the Go</title>
+    <link rel="stylesheet" href="brand/fonts.css" />
+    <script src="vendor/plotly-2.30.0.min.js"></script>
     <style>
       :root {
-        --ink: #0b0f19;
-        --slate: #1d2433;
-        --mist: #f1f4f9;
-        --aqua: #3dd6c6;
-        --coral: #ff6f59;
-        --gold: #ffcb3c;
-        --deep: #0a3d62;
-        --card: rgba(255, 255, 255, 0.84);
-        --shadow: 0 24px 60px rgba(17, 24, 39, 0.16);
+        /* Northern Arc / AltiFi */
+        --cyan: #4fc6e0;
+        --cyan-deep: #1b9ab8;
+        --cyan-wash: #e9f8fc;
+        --navy: #0d1c31;
+        --navy-2: #16294a;
+        --navy-3: #0a1526;
+        --ink: #0d1c31;
+        --ink-2: #44546b;
+        --ink-3: #7a879a;
+        --line: #e3e8ef;
+        --surface: #ffffff;
+        --ground: #f5f7fa;
+        --good: #1f9d6b;
+        --warn: #c98a12;
+        --bad: #c8453b;
+        --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+        --radius: 14px;
+        --shadow: 0 1px 2px rgba(13, 28, 49, 0.06), 0 8px 24px rgba(13, 28, 49, 0.06);
+        --band-aplus: #1f9d6b; --band-a: #4fc6e0; --band-b: #8fa3bf; --band-c: #e9b949; --band-d: #e07b39; --band-e: #c8453b;
       }
 
       * { box-sizing: border-box; }
 
       body {
         margin: 0;
-        font-family: "IBM Plex Sans", sans-serif;
+        font-family: "Host Grotesk", "Segoe UI", system-ui, sans-serif;
         color: var(--ink);
-        background: radial-gradient(circle at top, #e9f6ff 0%, #fff 45%) no-repeat,
-          linear-gradient(120deg, #f8f1ff 0%, #fff3ec 55%, #effffb 100%);
+        background: var(--ground);
         min-height: 100vh;
       }
 
-      header {
-        padding: 48px 7vw 24px;
-        position: relative;
-        overflow: hidden;
-      }
+      h1, h2, h3 { font-weight: 600; letter-spacing: -0.01em; }
 
-      header::after {
-        content: "";
-        position: absolute;
-        width: 320px; height: 320px;
-        right: -120px; top: -80px;
-        background: radial-gradient(circle, rgba(61,214,198,0.45), transparent 70%);
-        filter: blur(2px);
-        z-index: 0;
-      }
-
-      header::before {
-        content: "";
-        position: absolute;
-        width: 220px; height: 220px;
-        left: 8vw; top: -80px;
-        background: radial-gradient(circle, rgba(255,203,60,0.35), transparent 70%);
-        z-index: 0;
-      }
-
-      .hero {
-        position: relative;
-        z-index: 1;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 24px;
-        align-items: start;
-      }
-
-      .hero h1 {
-        font-family: "Space Grotesk", sans-serif;
-        font-size: clamp(2.3rem, 3.2vw, 3.6rem);
-        margin: 0 0 12px;
-      }
-
-      .hero p { font-size: 1.05rem; max-width: 520px; color: var(--slate); }
-
-      .badge {
-        display: inline-flex;
+      /* ---- Top bar ---- */
+      .topbar {
+        background: var(--navy-3);
+        color: #fff;
+        padding: 12px 5vw;
+        display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 6px 14px;
-        background: rgba(11, 15, 25, 0.08);
-        border-radius: 999px;
-        font-size: 0.85rem;
-        margin-bottom: 16px;
+        justify-content: space-between;
+        gap: 16px;
+        border-bottom: 1px solid rgba(79,198,224,0.18);
+        position: relative;
+        z-index: 2;
       }
+      .logos { display: flex; align-items: center; gap: 18px; }
+      .logos img { height: 30px; width: auto; display: block; }
+      .logos .divider { width: 1px; height: 26px; background: rgba(255,255,255,0.22); }
+      .env-chip {
+        font-size: 0.74rem;
+        font-family: var(--mono);
+        padding: 4px 10px;
+        border: 1px solid rgba(79,198,224,0.5);
+        color: var(--cyan);
+        border-radius: 999px;
+        white-space: nowrap;
+        letter-spacing: 0.04em;
+      }
+
+      /* ---- Sci-fi hero ---- */
+      header.hero {
+        position: relative;
+        color: #fff;
+        padding: 44px 5vw 110px;
+        overflow: hidden;
+        background:
+          radial-gradient(1200px 500px at 15% -10%, rgba(79,198,224,0.20), transparent 60%),
+          radial-gradient(900px 400px at 90% 10%, rgba(79,198,224,0.10), transparent 60%),
+          linear-gradient(180deg, var(--navy-3) 0%, var(--navy) 55%, var(--navy-2) 100%);
+        isolation: isolate;
+      }
+      #hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.9; }
+      .hero::before {
+        /* fine perspective grid on the floor */
+        content: "";
+        position: absolute; inset: auto 0 0 0; height: 55%;
+        background-image:
+          linear-gradient(rgba(79,198,224,0.10) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(79,198,224,0.10) 1px, transparent 1px);
+        background-size: 48px 48px;
+        transform: perspective(600px) rotateX(58deg);
+        transform-origin: bottom;
+        mask-image: linear-gradient(180deg, transparent, #000 60%);
+        -webkit-mask-image: linear-gradient(180deg, transparent, #000 60%);
+        z-index: 0;
+        pointer-events: none;
+      }
+      .hero::after {
+        /* slow scan line */
+        content: "";
+        position: absolute; left: 0; right: 0; height: 120px; top: -140px;
+        background: linear-gradient(180deg, transparent, rgba(79,198,224,0.08), transparent);
+        animation: scan 9s linear infinite;
+        z-index: 0;
+        pointer-events: none;
+      }
+      @keyframes scan { to { top: 110%; } }
+      @media (prefers-reduced-motion: reduce) {
+        .hero::after { animation: none; display: none; }
+        .sys-dot { animation: none; }
+      }
+      .hero-inner { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; }
+      .eyebrow {
+        color: var(--cyan);
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        font-family: var(--mono);
+      }
+      .hero h1 { font-size: clamp(2.1rem, 3.8vw, 3.4rem); margin: 10px 0 12px; line-height: 1.08; }
+      .hero h1 .accent { color: var(--cyan); text-shadow: 0 0 24px rgba(79,198,224,0.55); }
+      .hero .lead { color: #c7d2e0; max-width: 700px; font-size: 1.04rem; line-height: 1.6; margin: 0; }
+      .hero-top { display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; align-items: start; }
+      @media (max-width: 900px) { .hero-top { grid-template-columns: 1fr; } }
+
+      .sys-panel {
+        border: 1px solid rgba(79,198,224,0.35);
+        border-radius: 12px;
+        padding: 14px 16px;
+        background: rgba(10, 21, 38, 0.65);
+        backdrop-filter: blur(6px);
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        box-shadow: 0 0 0 1px rgba(79,198,224,0.08) inset, 0 0 40px rgba(79,198,224,0.08);
+      }
+      .sys-panel .title { color: var(--cyan); letter-spacing: 0.12em; text-transform: uppercase; font-size: 0.7rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+      .sys-row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-top: 1px dashed rgba(79,198,224,0.18); color: #c7d2e0; }
+      .sys-row b { color: #fff; font-weight: 500; text-align: right; }
+      .sys-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); animation: blink 1.8s ease-in-out infinite; display: inline-block; }
+      @keyframes blink { 50% { opacity: 0.35; } }
+
+      .use-cases { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+      .use-cases span {
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(79,198,224,0.45);
+        color: #dff5fa;
+        background: rgba(79,198,224,0.06);
+      }
+
+      .flow { display: flex; flex-wrap: wrap; gap: 6px 0; margin-top: 30px; align-items: stretch; }
+      .flow .step {
+        flex: 1 1 130px;
+        position: relative;
+        padding: 10px 12px 10px 14px;
+        border: 1px solid rgba(79,198,224,0.3);
+        background: rgba(13,28,49,0.55);
+        font-size: 0.8rem;
+        line-height: 1.3;
+        color: #dfe7f2;
+        margin-right: 10px;
+        border-radius: 8px;
+      }
+      .flow .step .n { font-family: var(--mono); color: var(--cyan); font-size: 0.68rem; letter-spacing: 0.1em; display: block; margin-bottom: 2px; }
+      .flow .step::after { content: "›"; position: absolute; right: -9px; top: 50%; transform: translateY(-55%); color: var(--cyan); font-size: 1.1rem; }
+      .flow .step:last-child::after { content: none; }
+
+      .brief { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 26px; }
+      .brief-card {
+        border: 1px solid rgba(79,198,224,0.28);
+        border-radius: 12px;
+        background: rgba(10, 21, 38, 0.6);
+        padding: 16px 18px;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        color: #d5dfeb;
+        position: relative;
+      }
+      .brief-card::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 2px; background: var(--cyan); box-shadow: 0 0 12px var(--cyan); border-radius: 2px; }
+      .brief-card h3 { margin: 0 0 8px; font-size: 0.95rem; color: #fff; display: flex; align-items: center; gap: 8px; }
+      .brief-card h3 .k { font-family: var(--mono); font-size: 0.68rem; color: var(--cyan); letter-spacing: 0.12em; }
+      .brief-card ul { margin: 6px 0 0; padding-left: 18px; }
+      .brief-card li { margin: 3px 0; }
+      .brief-card code { font-family: var(--mono); font-size: 0.8em; background: rgba(79,198,224,0.12); color: #e9f8fc; padding: 1px 6px; border-radius: 4px; }
+      .brief-card .req { display: inline-block; font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 1px 7px; border-radius: 999px; margin-right: 6px; vertical-align: 1px; }
+      .brief-card .req.must { background: var(--cyan); color: var(--navy); }
+      .brief-card .req.nice { border: 1px solid rgba(79,198,224,0.6); color: var(--cyan); }
+      .brief-card .warn { color: #ffb3aa; }
+      .brief-card .ok { color: #8fe3c8; }
+
+      main { position: relative; z-index: 1; max-width: 1240px; margin: -70px auto 0; padding: 0 5vw 64px; }
+
+      /* ---- Cards ---- */
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 22px 24px;
+        box-shadow: var(--shadow);
+      }
+      .panel h2 { font-size: 1.12rem; margin: 0 0 4px; }
+      .panel .sub { color: var(--ink-3); font-size: 0.88rem; margin: 0 0 16px; }
+
+      .grid { display: grid; gap: 20px; margin-top: 20px; }
+      .grid.two { grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); }
+      .grid.three { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+      @media (max-width: 560px) { .grid.two, .grid.three { grid-template-columns: 1fr; } }
+      /* Grid children default to min-width:auto, so a wide table would stretch its column past the viewport. */
+      .grid > *, .nu-head > *, .simulator > *, .score-out > *, .detail-grid > *, .hero-top > * { min-width: 0; }
 
       /* ---- Tabs ---- */
-      .tab-bar {
-        display: flex;
-        gap: 4px;
-        margin-bottom: 16px;
-        border-bottom: 2px solid #e2e8f3;
-      }
-
+      .tab-bar { display: flex; gap: 6px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
       .tab-btn {
-        padding: 8px 18px;
+        padding: 10px 16px;
         border: none;
-        border-bottom: 3px solid transparent;
         background: transparent;
-        font-family: "IBM Plex Sans", sans-serif;
-        font-size: 0.9rem;
+        font: inherit;
         font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--ink-3);
         cursor: pointer;
-        color: #6b7a99;
-        margin-bottom: -2px;
-        border-radius: 8px 8px 0 0;
-        transition: color 0.15s, border-color 0.15s;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -1px;
       }
-
-      .tab-btn.active {
-        color: var(--deep);
-        border-bottom-color: var(--deep);
-        background: rgba(10, 61, 98, 0.04);
-      }
-
+      .tab-btn.active { color: var(--ink); border-bottom-color: var(--cyan); }
       .tab-panel { display: none; }
       .tab-panel.active { display: block; }
 
-      /* ---- Controls panel ---- */
-      main { padding: 0 7vw 64px; }
-
-      .panel {
-        background: var(--card);
-        border-radius: 24px;
-        padding: 24px;
-        box-shadow: var(--shadow);
-        backdrop-filter: blur(12px);
-      }
-
-      .controls {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 16px;
-        margin-top: 20px;
-      }
-
+      /* ---- Forms ---- */
+      .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
       label {
         display: block;
-        font-size: 0.85rem;
+        font-size: 0.78rem;
+        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: #55607a;
+        letter-spacing: 0.06em;
+        color: var(--ink-2);
         margin-bottom: 6px;
       }
-
       input, select {
         width: 100%;
         padding: 10px 12px;
-        border-radius: 12px;
-        border: 1px solid #d6dce8;
+        border-radius: 10px;
+        border: 1px solid #cfd7e2;
+        font: inherit;
         font-size: 0.95rem;
-        font-family: "IBM Plex Sans", sans-serif;
         background: #fff;
+        color: var(--ink);
       }
+      input:focus, select:focus { outline: 2px solid var(--cyan); outline-offset: 1px; border-color: var(--cyan); }
+      .tier-help { font-size: 0.8rem; color: var(--ink-3); margin-top: 4px; }
 
-      .run-btn {
-        background: linear-gradient(135deg, var(--deep), #121826);
-        color: #fff;
-        border: none;
-        padding: 14px 24px;
-        border-radius: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        box-shadow: 0 12px 24px rgba(10, 61, 98, 0.3);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        width: 100%;
-      }
-
-      .run-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 16px 32px rgba(10, 61, 98, 0.35);
-      }
-
-      .run-btn:disabled {
-        opacity: 0.55;
-        cursor: not-allowed;
-        transform: none;
-      }
-
-      .run-btn.secondary {
-        background: linear-gradient(135deg, #6c47ff, #3a1fa8);
-      }
-
-      .run-btn.accent {
-        background: linear-gradient(135deg, #0b6e4f, #09402e);
-      }
-
-      /* ---- CSV upload area ---- */
-      .upload-area {
-        border: 2px dashed #c3cfe2;
-        border-radius: 16px;
-        padding: 32px;
-        text-align: center;
-        cursor: pointer;
-        transition: border-color 0.2s, background 0.2s;
-        margin-bottom: 16px;
-      }
-
-      .upload-area:hover, .upload-area.dragover {
-        border-color: var(--aqua);
-        background: rgba(61, 214, 198, 0.04);
-      }
-
-      .upload-area input[type="file"] { display: none; }
-
-      .upload-icon { font-size: 2rem; margin-bottom: 8px; }
-
-      /* ---- AI Analysis card ---- */
-      #ai-analysis-card {
-        display: none;
-        margin-top: 20px;
-      }
-
-      .analysis-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 12px;
-        margin-bottom: 16px;
-      }
-
-      .ai-meta-chip {
+      .btn {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 4px 12px;
-        border-radius: 999px;
-        font-size: 0.8rem;
-        font-weight: 600;
-      }
-
-      .chip-high   { background: #dcfce7; color: #15803d; }
-      .chip-medium { background: #fef9c3; color: #854d0e; }
-      .chip-low    { background: #fee2e2; color: #991b1b; }
-      .chip-info   { background: #e0f2fe; color: #0369a1; }
-
-      .quality-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-
-      .quality-pill {
-        padding: 4px 10px;
-        border-radius: 999px;
-        font-size: 0.78rem;
-        font-weight: 500;
-      }
-
-      .pill-high   { background: #fee2e2; color: #991b1b; }
-      .pill-medium { background: #fef9c3; color: #854d0e; }
-      .pill-low    { background: #e0f2fe; color: #0369a1; }
-
-      .target-select-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        align-items: end;
-        margin-top: 16px;
-      }
-
-      /* ---- Results area ---- */
-      .grid {
-        display: grid;
-        gap: 20px;
-        margin-top: 24px;
-      }
-
-      .stats {
-        display: grid;
-        gap: 16px;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      }
-
-      .stat-card {
-        background: #fff;
-        border-radius: 18px;
-        padding: 16px;
-        border: 1px solid #e2e8f3;
-      }
-
-      .stat-card h3 { margin: 0 0 6px; font-size: 0.95rem; color: #475069; }
-      .stat-card p  { margin: 0; font-size: 1.4rem; font-weight: 600; }
-
-      .leaderboard { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-
-      .leaderboard th,
-      .leaderboard td {
-        text-align: left;
-        padding: 10px 8px;
-        border-bottom: 1px solid #e4e8f2;
-      }
-
-      .leaderboard th { color: #54607a; font-weight: 600; }
-
-      .split-badges { display: flex; gap: 8px; flex-wrap: wrap; }
-
-      .split-badge {
-        padding: 6px 12px;
-        background: #0b0f19;
-        color: #fff;
-        border-radius: 999px;
-        font-size: 0.8rem;
-      }
-
-      .chart { height: 320px; }
-
-      .loading {
-        display: none;
-        align-items: center;
-        gap: 12px;
-        margin-top: 12px;
-        color: #334155;
-        font-weight: 500;
-      }
-
-      .loading.active { display: flex; }
-
-      .pulse {
-        width: 10px; height: 10px;
-        border-radius: 50%;
-        background: var(--aqua);
-        animation: pulse 1.4s infinite;
-      }
-
-      @keyframes pulse {
-        0%   { box-shadow: 0 0 0 0 rgba(61,214,198,0.5); }
-        70%  { box-shadow: 0 0 0 10px rgba(61,214,198,0); }
-        100% { box-shadow: 0 0 0 0 rgba(61,214,198,0); }
-      }
-
-      /* ---- Insights panel ---- */
-      #insights-panel { display: none; }
-
-      .insight-section { margin-bottom: 20px; }
-
-      .insight-section h3 {
-        font-family: "Space Grotesk", sans-serif;
-        margin: 0 0 10px;
-        font-size: 1rem;
-        color: var(--deep);
-      }
-
-      .insight-text {
-        background: #f8faff;
-        border-left: 3px solid var(--aqua);
-        padding: 12px 16px;
-        border-radius: 0 12px 12px 0;
-        font-size: 0.95rem;
-        line-height: 1.6;
-      }
-
-      .insight-list {
-        list-style: none;
-        margin: 0; padding: 0;
-        display: flex;
-        flex-direction: column;
+        justify-content: center;
         gap: 8px;
-      }
-
-      .insight-list li {
-        padding: 8px 14px;
+        background: var(--navy);
+        color: #fff;
+        border: none;
+        padding: 12px 20px;
         border-radius: 10px;
-        font-size: 0.9rem;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease;
+      }
+      .btn:hover { background: var(--navy-2); }
+      .btn.primary { background: var(--cyan); color: var(--navy); }
+      .btn.primary:hover { background: #6fd3e8; }
+      .btn.ghost { background: #fff; color: var(--ink); border: 1px solid #cfd7e2; }
+      .btn.ghost:hover { background: var(--ground); }
+      .btn.small { padding: 7px 12px; font-size: 0.85rem; }
+      .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+      .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+
+      /* ---- Upload ---- */
+      .upload-area {
+        border: 2px dashed #c3cedc;
+        border-radius: var(--radius);
+        padding: 34px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s;
+      }
+      .upload-area:hover, .upload-area.dragover { border-color: var(--cyan); background: var(--cyan-wash); }
+      .upload-area input[type="file"] { display: none; }
+      .upload-area .title { font-weight: 600; margin: 0; }
+      .upload-area .hint { margin: 6px 0 0; font-size: 0.86rem; color: var(--ink-3); }
+      .upload-area.compact { padding: 18px 16px; }
+
+      /* ---- Status line + stepper ---- */
+      .status { display: none; align-items: center; gap: 10px; margin-top: 14px; color: var(--ink-2); font-size: 0.92rem; }
+      .status.active { display: flex; }
+      .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--cyan); animation: pulse 1.4s infinite; flex: none; }
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(79,198,224,0.6); }
+        70% { box-shadow: 0 0 0 10px rgba(79,198,224,0); }
+        100% { box-shadow: 0 0 0 0 rgba(79,198,224,0); }
+      }
+      .stepper { display: none; margin-top: 12px; gap: 6px; flex-wrap: wrap; }
+      .stepper.active { display: flex; }
+      .stepper .st { flex: 1 1 110px; font-size: 0.74rem; font-family: var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: #fff; display: flex; align-items: center; gap: 8px; }
+      .stepper .st i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex: none; }
+      .stepper .st.done { color: var(--good); border-color: #cfe9dd; }
+      .stepper .st.done i { background: var(--good); }
+      .stepper .st.now { color: var(--navy); border-color: var(--cyan); background: var(--cyan-wash); }
+      .stepper .st.now i { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+      .error-box {
+        display: none;
+        margin-top: 14px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: #fdf0ef;
+        color: #8d2a22;
+        border: 1px solid #f2c9c5;
+        font-size: 0.92rem;
+      }
+      .error-box.active { display: block; }
+
+      /* ---- File list ---- */
+      .file-list { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 8px; }
+      .file-row { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; background: #fff; display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; align-items: center; }
+      .file-row .name { font-weight: 600; overflow-wrap: anywhere; }
+      .file-row .meta { font-size: 0.82rem; color: var(--ink-3); }
+      .file-row .bar { grid-column: 1 / -1; height: 5px; background: var(--line); border-radius: 999px; overflow: hidden; }
+      .file-row .bar > span { display: block; height: 100%; width: 0; background: var(--cyan); transition: width 0.2s; }
+      .file-row.ready .bar > span { background: var(--good); }
+      .file-row.failed { border-color: #f2c9c5; background: #fdf4f3; }
+      .file-row .remove { background: none; border: none; color: var(--ink-3); cursor: pointer; font-size: 1.1rem; padding: 2px 6px; }
+      .file-row .remove:hover { color: var(--bad); }
+      .role { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: var(--cyan-wash); color: var(--cyan-deep); margin-left: 8px; vertical-align: 1px; }
+      .role.loan_dump { background: var(--navy); color: #fff; }
+
+      /* ---- Steps ---- */
+      .step-card { display: none; margin-top: 18px; background: var(--ground); box-shadow: none; }
+      .step-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+      .step-head h2 { margin: 0; }
+      .step-no { width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; font-size: 0.8rem; font-weight: 700; flex: none; }
+      .join-row { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-top: 12px; display: grid; grid-template-columns: 1.2fr 1fr auto 1fr 1fr; gap: 10px; align-items: end; }
+      @media (max-width: 860px) { .join-row { grid-template-columns: 1fr 1fr; } }
+      .join-row .eq { text-align: center; padding-bottom: 10px; color: var(--ink-3); font-weight: 700; }
+      .join-row .file { grid-column: 1 / -1; font-weight: 600; }
+      .match { font-size: 0.82rem; font-weight: 600; padding-bottom: 10px; }
+      .match.good { color: var(--good); } .match.warn { color: var(--warn); } .match.bad { color: var(--bad); }
+      .flag-list { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 6px; }
+      .flag-list li { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 0.88rem; display: flex; gap: 10px; align-items: flex-start; }
+      .flag-list input { width: auto; margin-top: 3px; }
+      .flag-list .kind { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; flex: none; margin-top: 1px; }
+      .kind.pii { background: #fbe7e5; color: #8d2a22; } .kind.leakage { background: #fbf2dc; color: #85600d; } .kind.identifier { background: var(--cyan-wash); color: var(--cyan-deep); }
+      .flag-list .reason { color: var(--ink-2); }
+      .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+      .chip { padding: 4px 11px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; background: var(--cyan-wash); color: #0f6d84; }
+      .chip.param { font-family: var(--mono); font-weight: 500; font-size: 0.74rem; background: var(--ground); color: var(--ink-2); border: 1px solid var(--line); }
+      .note { background: #fff; border-left: 3px solid var(--cyan); padding: 12px 14px; border-radius: 0 10px 10px 0; line-height: 1.55; font-size: 0.94rem; }
+      ul.clean { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 6px; }
+      ul.clean li { background: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; line-height: 1.45; border: 1px solid var(--line); }
+
+      /* ---- Results ---- */
+      #results { display: none; }
+      .section-title { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+      .section-title .eyebrow { font-size: 0.7rem; }
+
+      .champion {
+        display: grid;
+        grid-template-columns: 1.1fr 2fr;
+        gap: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      @media (max-width: 860px) { .champion { grid-template-columns: 1fr; } }
+      .champion-id { background: var(--navy); color: #fff; padding: 24px; position: relative; overflow: hidden; }
+      .champion-id::after { content: ""; position: absolute; right: -60px; top: -60px; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(79,198,224,0.35), transparent 65%); }
+      .champion-id .eyebrow { font-size: 0.72rem; }
+      .champion-id h2 { font-size: 1.7rem; margin: 6px 0 4px; }
+      .champion-id .why { color: #c7d2e0; font-size: 0.9rem; line-height: 1.5; margin: 10px 0 0; }
+      .composite { margin-top: 16px; position: relative; z-index: 1; }
+      .composite .row { display: grid; grid-template-columns: 110px 1fr 44px; gap: 8px; align-items: center; font-size: 0.78rem; margin-top: 6px; color: #c7d2e0; }
+      .composite .row .track { height: 7px; background: rgba(255,255,255,0.12); border-radius: 999px; overflow: hidden; }
+      .composite .row .track i { display: block; height: 100%; background: var(--cyan); border-radius: 999px; }
+      .composite .row b { color: #fff; font-variant-numeric: tabular-nums; text-align: right; font-weight: 500; }
+      .composite .total { font-family: var(--mono); font-size: 0.74rem; color: var(--cyan); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 12px; }
+      .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+      @media (max-width: 560px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+      .kpi { padding: 20px 22px; border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+      .kpi .label { font-size: 0.76rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+      .kpi .value { font-size: 1.7rem; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
+      .kpi .delta { font-size: 0.82rem; margin-top: 2px; color: var(--ink-3); }
+
+      .stats { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+      .stat { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #fff; }
+      .stat .label { font-size: 0.78rem; color: var(--ink-3); }
+      .stat .value { font-size: 1.25rem; font-weight: 600; margin-top: 2px; overflow-wrap: anywhere; }
+      .stat .value.small { font-size: 1rem; }
+      .split-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+      .split-badge { padding: 5px 11px; background: var(--ground); border: 1px solid var(--line); border-radius: 999px; font-size: 0.8rem; color: var(--ink-2); }
+
+      .table-wrap { overflow-x: auto; }
+      table.board { width: 100%; border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+      table.board th, table.board td { text-align: right; padding: 10px 9px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+      table.board th:nth-child(-n+2), table.board td:nth-child(-n+2) { text-align: left; }
+      table.board th { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-3); font-weight: 600; }
+      table.board tr.best td { background: var(--cyan-wash); }
+      table.board tr.best td:first-child { box-shadow: inset 3px 0 0 var(--cyan); }
+      table.board tr.failed td { color: var(--ink-3); background: #fafbfc; }
+      table.board tr.clickable { cursor: pointer; }
+      table.board tr.clickable:hover td { background: #f8fafc; }
+      table.board tr.best.clickable:hover td { background: #dff3f9; }
+      table.board tr.detail td { white-space: normal; background: var(--ground); padding: 14px 16px; text-align: left; }
+      .detail-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; }
+      @media (max-width: 800px) { .detail-grid { grid-template-columns: 1fr; } }
+      .detail-grid h4 { margin: 0 0 6px; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-3); }
+      .detail-grid p { margin: 0 0 10px; font-size: 0.9rem; line-height: 1.5; }
+      table.mini { border-collapse: collapse; font-size: 0.82rem; font-variant-numeric: tabular-nums; width: 100%; }
+      table.mini th, table.mini td { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: right; }
+      table.mini th:first-child, table.mini td:first-child { text-align: left; }
+      .spark { height: 90px; }
+      .crown { display: inline-block; font-size: 0.7rem; font-weight: 700; background: var(--cyan); color: var(--navy); padding: 2px 7px; border-radius: 999px; margin-left: 8px; vertical-align: 1px; }
+      .fam { display: inline-block; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 6px; border-radius: 6px; background: var(--ground); color: var(--ink-3); margin-left: 8px; border: 1px solid var(--line); vertical-align: 1px; }
+      .fam.ensemble { background: var(--navy); color: #fff; border-color: var(--navy); }
+      .fam.transformer { background: #efe8ff; color: #5b3fb2; border-color: #d8ccf5; }
+      .bar-cell { display: inline-flex; align-items: center; gap: 8px; justify-content: flex-end; }
+      .bar-cell i { display: inline-block; height: 6px; border-radius: 3px; background: var(--cyan); }
+      .tag { font-size: 0.78rem; font-weight: 600; }
+      .tag.good { color: var(--good); }
+      .tag.warn { color: var(--warn); }
+      .tag.bad { color: var(--bad); }
+
+      .chart { height: 380px; }
+      .chart.short { height: 260px; }
+      .chart.tall { height: 460px; }
+
+      #insights-panel { display: none; }
+      .insight-section { margin-bottom: 18px; }
+      .insight-section h3 { font-size: 0.95rem; margin: 0 0 8px; }
+
+      /* ---- Nu Score ---- */
+      .nu-head { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; align-items: start; }
+      @media (max-width: 860px) { .nu-head { grid-template-columns: 1fr; } }
+      .scale-legend { display: flex; height: 14px; border-radius: 999px; overflow: hidden; margin-top: 10px; }
+      .scale-legend span { display: block; height: 100%; }
+      .scale-ticks { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.7rem; color: var(--ink-3); margin-top: 4px; }
+      .band-pill { display: inline-block; min-width: 34px; text-align: center; padding: 2px 8px; border-radius: 999px; font-weight: 700; font-size: 0.78rem; color: #fff; }
+      .toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+      .toggle button { border: none; background: #fff; padding: 6px 14px; font: inherit; font-size: 0.82rem; font-weight: 600; color: var(--ink-3); cursor: pointer; }
+      .toggle button.active { background: var(--navy); color: #fff; }
+      .simulator { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; align-items: start; margin-top: 14px; }
+      @media (max-width: 860px) { .simulator { grid-template-columns: 1fr; } }
+      input[type="range"] { padding: 0; height: 6px; accent-color: var(--cyan); }
+      .cut-value { font-family: var(--mono); font-size: 1.6rem; color: var(--navy); margin: 6px 0 10px; }
+      .cut-value small { font-size: 0.8rem; color: var(--ink-3); font-family: inherit; margin-left: 8px; }
+
+      /* ---- Scoring ---- */
+      .score-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; margin-top: 12px; }
+      .score-form .fld label { font-size: 0.7rem; margin-bottom: 4px; overflow-wrap: anywhere; text-transform: none; letter-spacing: 0; }
+      .score-form input, .score-form select { padding: 8px 10px; font-size: 0.9rem; }
+      .score-form .other { margin-top: 6px; display: none; }
+      .score-out { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: start; margin-top: 18px; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--ground); }
+      @media (max-width: 760px) { .score-out { grid-template-columns: 1fr; } }
+      .gauge { width: 100%; max-width: 300px; margin: 0 auto; display: block; }
+      .gauge-band { text-align: center; margin-top: -6px; }
+      .reasons { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 6px; }
+      .reasons li { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 0.88rem; display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+      .reasons li .c { font-family: var(--mono); color: var(--bad); font-size: 0.8rem; }
+      .reasons li .v { color: var(--ink-3); font-size: 0.8rem; }
+      .mapping td.missing { color: var(--bad); font-weight: 600; }
+      .method { font-family: var(--mono); font-size: 0.7rem; padding: 1px 6px; border-radius: 5px; background: var(--ground); border: 1px solid var(--line); }
+
+      /* ---- Ported panels: warnings, diagnostics, drift, WOE, glossary ---- */
+      .warn-panel { background: #fffaf0; border-color: #f3dfa6; }
+      .warn-list { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 6px; }
+      .warn-list li { background: #fff; border: 1px solid #f3dfa6; border-left: 3px solid var(--warn); border-radius: 8px; padding: 8px 12px; font-size: 0.9rem; line-height: 1.45; }
+      .psi-tile { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; border-left-width: 4px; }
+      .psi-tile.stable { border-left-color: var(--good); } .psi-tile.moderate { border-left-color: var(--warn); } .psi-tile.significant { border-left-color: var(--bad); }
+      .psi-tile .label { font-size: 0.78rem; color: var(--ink-3); } .psi-tile .value { font-size: 1.2rem; font-weight: 600; margin-top: 2px; }
+      .psi-tile .st { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+      .st.stable { color: var(--good); } .st.moderate { color: var(--warn); } .st.significant { color: var(--bad); }
+      table.features tr.clickable { cursor: pointer; }
+      table.features tr.woe td { white-space: normal; background: var(--ground); text-align: left; padding: 12px 14px; }
+      table.woe { border-collapse: collapse; font-size: 0.8rem; font-variant-numeric: tabular-nums; width: 100%; }
+      table.woe th, table.woe td { padding: 4px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+      table.woe th:first-child, table.woe td:first-child { text-align: left; }
+      .woe-bar { display: inline-flex; align-items: center; width: 110px; height: 8px; position: relative; vertical-align: middle; }
+      .woe-bar i { position: absolute; top: 0; height: 100%; border-radius: 3px; }
+      .woe-bar::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--ink-3); }
+      .gloss { font-size: 0.8rem; color: var(--ink-2); white-space: normal; max-width: 320px; line-height: 1.35; }
+      .gloss b { color: var(--ink); }
+      .note-chip { display: inline-block; font-size: 0.7rem; font-weight: 600; padding: 2px 7px; border-radius: 999px; background: #fbf2dc; color: #85600d; margin: 2px 4px 0 0; white-space: normal; }
+      .reasons li .why { grid-column: 1 / -1; color: var(--ink-3); font-size: 0.78rem; line-height: 1.4; }
+      details.cleanup { margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--ground); }
+      details.cleanup summary { cursor: pointer; padding: 9px 12px; font-weight: 600; font-size: 0.88rem; }
+      details.cleanup .clean { padding: 0 12px 10px; }
+      table.mini.diag td:first-child { white-space: normal; }
+      .method.llm { background: #efe8ff; border-color: #d8ccf5; color: #5b3fb2; }
+      .method.missing { background: #fbe7e5; border-color: #f2c9c5; color: #8d2a22; }
+
+      /* ---- Privacy ---- */
+      .privacy {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        background: var(--cyan-wash);
+        border: 1px solid #bfe9f3;
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin-bottom: 14px;
+        font-size: 0.88rem;
         line-height: 1.5;
       }
+      .privacy .icon { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--cyan); color: var(--navy); display: grid; place-items: center; font-weight: 700; font-size: 0.85rem; }
+      .privacy strong { color: var(--navy); }
+      .privacy.pricing { background: #fff8e8; border-color: #f3dfa6; }
+      .privacy.pricing .icon { background: #e9b949; }
 
-      .insight-list.features li { background: #f0fdf4; border-left: 3px solid #22c55e; }
-      .insight-list.flags    li { background: #fff7ed; border-left: 3px solid #f97316; }
-      .insight-list.recs     li { background: #eff6ff; border-left: 3px solid #3b82f6; }
-
-      .explain-btn-row {
-        display: flex;
-        justify-content: flex-end;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 12px;
-      }
-
-      .explain-btn-row .run-btn {
-        width: auto;
-        padding: 10px 20px;
-      }
-
-      @media (max-width: 720px) {
-        header { padding: 36px 6vw 16px; }
-        main   { padding: 0 6vw 48px; }
-        .panel { padding: 18px; }
-        .target-select-row { grid-template-columns: 1fr; }
-      }
+      footer { text-align: center; color: var(--ink-3); font-size: 0.8rem; padding: 0 5vw 32px; }
     </style>
   </head>
   <body>
-    <header>
-      <div class="hero">
-        <div>
-          <div class="badge">Live ML Ops Playground</div>
-          <h1>ML on the Go</h1>
-          <p>
-            Train, test, and compare models in minutes. Use synthetic loan data or
-            upload your own CSV — AI will analyse the schema and guide you through
-            the training setup.
-          </p>
+    <div class="topbar">
+      <div class="logos">
+        <img src="brand/northern-arc-light.png" alt="Northern Arc" />
+        <span class="divider"></span>
+        <img src="brand/altifi_logo_light.png" alt="AltiFi" />
+      </div>
+      <span class="env-chip">INTERNAL · ON-PREM · GPU</span>
+    </div>
+
+    <header class="hero">
+      <canvas id="hero-canvas" aria-hidden="true"></canvas>
+      <div class="hero-inner">
+        <div class="hero-top">
+          <div>
+            <div class="eyebrow">Nu Score On the Go · Democratising ML modelling</div>
+            <h1>Build ML models with <span class="accent">your data</span></h1>
+            <p class="lead">
+              No data-science team needed. Upload your loan book, bureau pulls and bank-statement variables;
+              the engine matches the identifier across files, screens for PII and leakage, tunes nine model
+              families on GPUs, picks a champion on discrimination, stability and calibration, and hands you a
+              calibrated <strong>Nu Score</strong> you can use on new applications the same minute.
+            </p>
+            <div class="use-cases">
+              <span>Loan default</span><span>Collections priority</span><span>Customer churn</span>
+              <span>Sales forecasting</span><span>Inventory demand</span><span>Fraud &amp; anomalies</span>
+            </div>
+          </div>
+          <div class="sys-panel" id="sys-panel">
+            <div class="title"><span class="sys-dot"></span>System status</div>
+            <div class="sys-row"><span>Model zoo</span><b>9 families · incl. FT-Transformer</b></div>
+            <div class="sys-row"><span>Tuning</span><b>Optuna TPE · stratified CV</b></div>
+            <div class="sys-row"><span>Compute</span><b>2 × Tesla T4 · 64 cores</b></div>
+            <div class="sys-row"><span>Language model</span><b>Local · nothing leaves the host</b></div>
+            <div class="sys-row"><span>Validation</span><b>Train · Test · OOT · Stress</b></div>
+            <div class="sys-row"><span>Data retention</span><b>Deleted once results are delivered</b></div>
+            <div class="sys-row"><span>Link</span><b id="sys-health">checking…</b></div>
+          </div>
         </div>
 
-        <div class="panel">
-          <div class="tab-bar">
-            <button class="tab-btn active" onclick="switchTab('synthetic')">Synthetic Data</button>
-            <button class="tab-btn"        onclick="switchTab('csv')">Upload CSV</button>
+        <div class="flow" aria-label="How it works">
+          <div class="step"><span class="n">01</span>Upload sources</div>
+          <div class="step"><span class="n">02</span>Match identifiers</div>
+          <div class="step"><span class="n">03</span>Analyse &amp; screen</div>
+          <div class="step"><span class="n">04</span>Train model zoo</div>
+          <div class="step"><span class="n">05</span>Pick champion</div>
+          <div class="step"><span class="n">06</span>Nu Score bands</div>
+          <div class="step"><span class="n">07</span>Score new applications</div>
+        </div>
+
+        <div class="brief">
+          <div class="brief-card">
+            <h3><span class="k">INPUT 01</span>What to bring</h3>
+            <div><span class="req must">Required</span><strong>Loan dump</strong>: one row per loan/case with
+              <code>loan_id</code> or <code>account_no</code>, the outcome to predict, product, amount, tenure, rate, EMI,
+              LTV, disbursal date, repayment history (DPD, overdue, months on book) and non-PII applicant profile
+              (age band, income, occupation, pincode-level geography).</div>
+            <div style="margin-top:8px"><span class="req nice">Recommended</span><strong>Bureau</strong>: score, enquiries
+              (3/6/12 m), live and closed trade lines, exposure, utilisation, worst DPD, write-offs — as a flat CSV or the
+              raw bureau <strong>JSON</strong>.</div>
+            <div style="margin-top:8px"><span class="req nice">Recommended</span><strong>Bank statement</strong>: average /
+              minimum / month-end balances, credit and debit counts, salary regularity, bounces, existing EMI outflow.
+              Monthly rows are fine.</div>
           </div>
-
-          <!-- ---- Tab: Synthetic ---- -->
-          <div id="tab-synthetic" class="tab-panel active">
-            <div class="controls">
-              <div>
-                <label for="rows">Rows</label>
-                <input id="rows" type="number" min="500" value="5000" />
-              </div>
-              <div>
-                <label for="features">Features</label>
-                <input id="features" type="number" min="20" value="100" />
-              </div>
-              <div>
-                <label for="categories">Categorical</label>
-                <input id="categories" type="number" min="2" value="10" />
-              </div>
-              <div>
-                <label for="label-positive">Positive label</label>
-                <input id="label-positive" type="text" value="default" />
-              </div>
-              <div>
-                <label for="label-negative">Negative label</label>
-                <input id="label-negative" type="text" value="no_default" />
-              </div>
-              <div>
-                <label for="seed">Seed</label>
-                <input id="seed" type="number" value="42" />
-              </div>
-            </div>
-            <div style="margin-top:16px">
-              <button class="run-btn" id="run-btn">Run Training</button>
-            </div>
-            <div class="loading" id="loading">
-              <span class="pulse"></span>
-              Training pipelines... hang tight.
-            </div>
+          <div class="brief-card">
+            <h3><span class="k">INPUT 02</span>Rules of the road</h3>
+            <ul>
+              <li><strong>One common identifier</strong> across files. Names can differ (<code>loan_id</code>,
+                <code>ref_no</code>, <code>account_number</code>); the engine finds the match and shows you the match rate.</li>
+              <li><strong>Formats:</strong> CSV, bureau JSON / JSON lines, Parquet. Up to <strong>20 GB per file</strong>;
+                uploads are chunked and resume if the connection drops.</li>
+              <li><strong>Outcome column:</strong> a 0/1 flag, yes/no, a class label, or a number you want thresholded
+                (e.g. DPD &gt; 90). You confirm the positive class.</li>
+              <li><strong>Time column</strong> (disbursal date, snapshot month) unlocks true out-of-time validation.</li>
+              <li>At least 100 rows and 2 columns; more history means a stronger, more stable score.</li>
+            </ul>
           </div>
-
-          <!-- ---- Tab: Upload CSV ---- -->
-          <div id="tab-csv" class="tab-panel">
-            <div class="upload-area" id="upload-area" onclick="document.getElementById('csv-file-input').click()">
-              <input type="file" id="csv-file-input" accept=".csv" onchange="handleFileSelect(event)" />
-              <div class="upload-icon">📂</div>
-              <p style="margin:0;font-weight:600">Click to choose a CSV file</p>
-              <p style="margin:4px 0 0;font-size:0.85rem;color:#6b7a99">or drag &amp; drop · max 50 MB · min 100 rows</p>
-            </div>
-
-            <div style="margin-top:8px">
-              <button class="run-btn secondary" id="upload-btn" onclick="uploadCSV()" disabled>
-                Upload &amp; Analyse
-              </button>
-            </div>
-            <div class="loading" id="upload-loading">
-              <span class="pulse"></span>
-              Uploading and running AI analysis...
-            </div>
-
-            <!-- AI Analysis card -->
-            <div id="ai-analysis-card" class="panel" style="margin-top:20px;padding:20px">
-              <h3 style="margin-top:0">AI Analysis</h3>
-              <div class="analysis-grid" id="ai-meta-chips"></div>
-
-              <div id="ai-recommendation" class="insight-text" style="margin-bottom:16px"></div>
-
-              <div id="quality-issues-section" style="display:none">
-                <label>Data Quality Issues</label>
-                <div class="quality-pills" id="quality-pills"></div>
-              </div>
-
-              <div id="feature-notes-section" style="margin-top:12px">
-                <label>Feature Notes</label>
-                <ul class="insight-list features" id="feature-notes-list" style="margin-top:8px"></ul>
-              </div>
-
-              <div class="target-select-row" style="margin-top:20px">
-                <div>
-                  <label for="target-col-select">Target Column</label>
-                  <select id="target-col-select"></select>
-                </div>
-                <div>
-                  <label for="positive-class-input">Positive Class (optional)</label>
-                  <input id="positive-class-input" type="text" placeholder="e.g. 1, yes, default" />
-                </div>
-              </div>
-
-              <div style="margin-top:12px">
-                <button class="run-btn accent" id="train-csv-btn" onclick="trainCSV()">
-                  Confirm &amp; Train
-                </button>
-              </div>
-              <div class="loading" id="csv-train-loading">
-                <span class="pulse"></span>
-                Training on your data... this may take a minute.
-              </div>
-            </div>
+          <div class="brief-card">
+            <h3><span class="k">INPUT 03</span>Keep out &amp; terms</h3>
+            <ul>
+              <li class="warn"><strong>Do not upload PII:</strong> customer name, mobile, email, address, PAN, Aadhaar,
+                date of birth, or any account number other than the loan identifier. Anything that slips through is
+                flagged and dropped before training.</li>
+              <li class="ok"><strong>Privacy:</strong> your data is used only to build the models and is deleted the moment
+                results are delivered. Only aggregate metrics and the trained model bundle remain.</li>
+              <li><strong>Pricing:</strong> free for now; after the introductory period <strong>₹10 per case</strong>
+                (per record scored) for compute hosted on our servers. Model building, validation, reports and Nu Score
+                bands are included.</li>
+            </ul>
           </div>
         </div>
       </div>
     </header>
 
     <main>
-      <div class="grid">
-        <section class="panel">
-          <h2>Dataset Overview</h2>
-          <div class="stats" id="dataset-stats"></div>
-          <div class="split-badges" id="class-balance"></div>
+      <section class="panel">
+        <div class="tab-bar" role="tablist">
+          <button class="tab-btn active" data-tab="csv" role="tab">Upload your data</button>
+          <button class="tab-btn" data-tab="synthetic" role="tab">Synthetic loan book</button>
+        </div>
+
+        <!-- ---- Tab: Upload ---- -->
+        <div id="tab-csv" class="tab-panel active">
+          <div class="privacy">
+            <span class="icon" aria-hidden="true">✓</span>
+            <div>
+              <strong>Not stored, no PII needed.</strong> Files are deleted as soon as your results are delivered.
+              A loan ID plus loan, bureau and bank-statement variables is all the engine needs.
+              <strong>Free for now</strong>; later ₹10 per case scored.
+            </div>
+          </div>
+
+          <div class="upload-area" id="upload-area" tabindex="0">
+            <input type="file" id="csv-file-input" accept=".csv,.json,.jsonl,.ndjson,.parquet" multiple />
+            <p class="title" id="upload-title">Drop your files here, or click to choose</p>
+            <p class="hint">Loan dump, bureau (CSV or JSON), bank statement… · up to 20 GB each · at least 100 rows · uploads resume if the connection drops</p>
+          </div>
+          <ul class="file-list" id="file-list"></ul>
+          <div class="btn-row">
+            <button class="btn primary" id="analyse-btn" disabled>Analyse files &amp; match identifiers</button>
+          </div>
+          <div class="status" id="upload-status"><span class="pulse"></span><span class="text"></span></div>
+          <div class="error-box" id="upload-error"></div>
+
+          <!-- Step 2: how the files connect -->
+          <div id="join-card" class="panel step-card">
+            <div class="step-head"><span class="step-no">2</span><h2>How your files connect</h2></div>
+            <p class="sub" id="join-notes"></p>
+            <div class="controls">
+              <div>
+                <label for="primary-file-select">Main table (one row per case)</label>
+                <select id="primary-file-select"></select>
+              </div>
+            </div>
+            <div id="join-rows"></div>
+            <div class="btn-row">
+              <button class="btn" id="join-btn">Confirm &amp; build the modelling table</button>
+            </div>
+            <div class="status" id="join-status"><span class="pulse"></span><span class="text"></span></div>
+            <div class="error-box" id="join-error"></div>
+          </div>
+
+          <!-- Step 3: data studio + target -->
+          <div id="target-card" class="panel step-card">
+            <div class="step-head"><span class="step-no">3</span><h2>Choose the outcome to predict</h2></div>
+            <p class="sub" id="dataset-summary"></p>
+            <div class="controls">
+              <div>
+                <label for="target-col-select">Outcome column (target)</label>
+                <select id="target-col-select"></select>
+              </div>
+              <div>
+                <label for="positive-class-input">Positive class (optional)</label>
+                <input id="positive-class-input" type="text" placeholder="e.g. 1, yes, default" />
+              </div>
+              <div style="align-self:end">
+                <button class="btn ghost" id="target-btn" style="width:100%">Analyse target</button>
+              </div>
+            </div>
+            <div class="status" id="target-status"><span class="pulse"></span><span class="text"></span></div>
+            <div class="error-box" id="target-error"></div>
+
+            <div id="target-analysis" style="display:none">
+              <div class="stats" style="margin-top:18px" id="target-stats"></div>
+              <div class="note" id="binarization-note" style="margin-top:12px"></div>
+
+              <div class="controls" style="margin-top:16px">
+                <div>
+                  <label for="time-col-select">Time column for Out-of-Time splits</label>
+                  <select id="time-col-select"></select>
+                </div>
+                <div>
+                  <label for="tier-select">Search depth</label>
+                  <select id="tier-select">
+                    <option value="quick">Quick · few trials, minutes</option>
+                    <option value="balanced" selected>Balanced · recommended</option>
+                    <option value="thorough">Thorough · widest search</option>
+                  </select>
+                  <div class="tier-help">How many hyper-parameter trials each model family gets.</div>
+                </div>
+              </div>
+              <p class="sub" id="split-note" style="margin-top:8px"></p>
+
+              <div id="flags-section" style="margin-top:16px">
+                <label>Columns we recommend leaving out</label>
+                <p class="sub">Tick a box to keep a column anyway.</p>
+                <ul class="flag-list" id="flag-list"></ul>
+              </div>
+
+              <div class="grid two" style="margin-top:8px">
+                <div>
+                  <label>Information Value by variable (top 20)</label>
+                  <div id="iv-chart" class="chart tall"></div>
+                </div>
+                <div>
+                  <label>Missing values (columns with the most gaps)</label>
+                  <div id="null-chart" class="chart tall"></div>
+                </div>
+              </div>
+
+              <div class="btn-row">
+                <button class="btn" id="train-csv-btn">Train all models</button>
+              </div>
+              <div class="status" id="csv-train-status"><span class="pulse"></span><span class="text"></span></div>
+              <div class="stepper" id="csv-train-stepper"></div>
+              <div class="error-box" id="csv-train-error"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ---- Tab: Synthetic ---- -->
+        <div id="tab-synthetic" class="tab-panel">
+          <p class="sub">
+            A demo retail loan book: 32 variables such as bureau score, enquiries, worst DPD, FOIR, LTV,
+            bank balances and cheque bounces. Nothing about the generator is shown to the models; every driver is
+            learnt from the data. Extra noise variables let you see the models ignore them.
+          </p>
+          <div class="controls">
+            <div><label for="rows">Loans</label><input id="rows" type="number" min="500" max="200000" value="10000" /></div>
+            <div><label for="default-rate">Default rate %</label><input id="default-rate" type="number" min="1" max="60" value="18" /></div>
+            <div><label for="noise">Noise variables</label><input id="noise" type="number" min="0" max="160" value="8" /></div>
+            <div><label for="label-positive">Positive label</label><input id="label-positive" type="text" value="default" /></div>
+            <div><label for="label-negative">Negative label</label><input id="label-negative" type="text" value="no_default" /></div>
+            <div><label for="seed">Seed</label><input id="seed" type="number" value="42" /></div>
+            <div>
+              <label for="tier-select-synthetic">Search depth</label>
+              <select id="tier-select-synthetic">
+                <option value="quick">Quick · few trials</option>
+                <option value="balanced" selected>Balanced</option>
+                <option value="thorough">Thorough</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn primary" id="run-btn">Generate &amp; train</button>
+          </div>
+          <div class="status" id="synthetic-status"><span class="pulse"></span><span class="text"></span></div>
+          <div class="stepper" id="synthetic-stepper"></div>
+          <div class="error-box" id="synthetic-error"></div>
+        </div>
+      </section>
+
+      <div id="results">
+        <!-- Champion -->
+        <section class="panel champion" style="margin-top:20px">
+          <div class="champion-id">
+            <div class="eyebrow">Champion model</div>
+            <h2 id="champion-name">–</h2>
+            <p class="why" id="champion-why"></p>
+            <div class="composite" id="composite"></div>
+          </div>
+          <div class="kpis" id="champion-kpis"></div>
         </section>
 
-        <section class="panel">
-          <h2>Leaderboard (Test ROC-AUC)</h2>
-          <table class="leaderboard" id="leaderboard"></table>
-          <div class="explain-btn-row" id="explain-btn-row" style="display:none">
-            <button class="run-btn secondary" style="width:auto;padding:10px 20px" onclick="explainResults()">
-              Explain with AI
-            </button>
-            <button class="run-btn" style="width:auto;padding:10px 20px;background:linear-gradient(135deg,#0b6e4f,#09402e)" onclick="downloadReport('html')">
-              ⬇ HTML Report
-            </button>
-            <button class="run-btn" style="width:auto;padding:10px 20px;background:linear-gradient(135deg,#7c3aed,#4c1d95)" onclick="downloadReport('pdf')">
-              ⬇ PDF Report
-            </button>
+        <!-- Validation notes -->
+        <section class="panel warn-panel" id="warnings-panel" style="margin-top:20px;display:none">
+          <div class="section-title"><h2>Validation notes</h2><span class="eyebrow">honest caveats, generated from the run</span></div>
+          <p class="sub" id="selection-policy"></p>
+          <ul class="warn-list" id="warnings-list"></ul>
+        </section>
+
+        <!-- Nu Score -->
+        <section class="panel" id="nuscore-panel" style="margin-top:20px">
+          <div class="section-title"><h2>Nu Score (AI-enhanced)</h2><span class="eyebrow" id="nu-base"></span></div>
+          <div class="nu-head">
+            <div>
+              <p class="sub" style="margin-bottom:8px">
+                A 0–1000 score, <strong>higher is safer</strong>. Probabilities from the champion and the stacked blend
+                are calibrated on a dedicated <strong>calibration cohort</strong> (never test or out-of-time), so 500 means
+                even odds of the outcome and every <strong>+60 points doubles</strong> the odds of a good outcome. Bands are
+                learnt on the calibration cohort where the bad rate steps up, then frozen and checked on Test and Out-of-Time.
+              </p>
+              <div class="scale-legend" id="scale-legend"></div>
+              <div class="scale-ticks" id="scale-ticks"></div>
+            </div>
+            <div class="stats" id="nu-ai-tiles"></div>
           </div>
-          <div class="loading" id="explain-loading" style="margin-top:8px">
-            <span class="pulse"></span>
-            Generating plain-English insights...
+
+          <div class="grid two">
+            <div>
+              <h3 style="font-size:0.95rem;margin:0 0 4px">Score distribution · Test</h3>
+              <p class="sub">Good vs bad outcomes by score, with band regions.</p>
+              <div id="nu-hist" class="chart"></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+                <h3 style="font-size:0.95rem;margin:0">Band performance</h3>
+                <div class="toggle" id="band-split-toggle">
+                  <button data-split="calibration">Calibration</button>
+                  <button data-split="test" class="active">Test</button>
+                  <button data-split="oot">Out-of-Time</button>
+                </div>
+              </div>
+              <p class="sub">Population share, observed bad rate and how many bads sit at or below each band.</p>
+              <div class="table-wrap"><table class="board" id="band-table"></table></div>
+            </div>
           </div>
-          <div class="loading" id="report-loading" style="margin-top:8px">
-            <span class="pulse"></span>
-            <span id="report-loading-text">Building report...</span>
+
+          <h3 style="font-size:0.95rem;margin:22px 0 4px">Cut-off simulator</h3>
+          <p class="sub">Approve applications at or above a Nu Score cut-off; see the trade-off on the test split.</p>
+          <div class="simulator">
+            <div>
+              <div class="cut-value"><span id="cut-value">600</span><small>approve at or above</small></div>
+              <input type="range" id="cut-slider" min="0" max="1000" step="20" value="600" />
+              <div class="stats" style="margin-top:14px" id="cut-tiles"></div>
+            </div>
+            <div id="cut-chart" class="chart short"></div>
           </div>
         </section>
 
-        <!-- AI Insights panel -->
-        <section class="panel" id="insights-panel">
-          <h2>AI Insights</h2>
-
-          <div class="insight-section">
-            <h3>Executive Summary</h3>
-            <div class="insight-text" id="insight-summary"></div>
+        <!-- Models -->
+        <section class="panel" style="margin-top:20px">
+          <h2>All models developed</h2>
+          <p class="sub" id="leaderboard-sub">Ranked by a composite computed only on the selection cohorts (train / validation / calibration): validation AUC, validation Brier, validation→calibration consistency, overfit gap and simplicity. Test and Out-of-Time columns are untouched hold-outs. Click a row for tuning details.</p>
+          <div class="table-wrap"><table class="board" id="leaderboard"></table></div>
+          <div class="btn-row" style="justify-content:flex-end">
+            <button class="btn ghost" id="explain-btn">Explain with AI</button>
+            <button class="btn ghost" data-report="html">Download HTML report</button>
+            <button class="btn ghost" data-report="pdf">Download PDF report</button>
           </div>
-
-          <div class="insight-section">
-            <h3>Best Model Analysis</h3>
-            <div class="insight-text" id="insight-best-model"></div>
-          </div>
-
-          <div class="insight-section">
-            <h3>Feature Insights</h3>
-            <ul class="insight-list features" id="insight-features"></ul>
-          </div>
-
-          <div class="insight-section">
-            <h3>Risk Flags</h3>
-            <ul class="insight-list flags" id="insight-flags"></ul>
-          </div>
-
-          <div class="insight-section">
-            <h3>Recommendations</h3>
-            <ul class="insight-list recs" id="insight-recs"></ul>
-          </div>
+          <div class="status" id="action-status"><span class="pulse"></span><span class="text"></span></div>
+          <div class="error-box" id="action-error"></div>
         </section>
 
-        <section class="panel">
-          <h2>Model Metrics</h2>
-          <div id="metrics-chart" class="chart"></div>
+        <!-- Explainability -->
+        <section class="panel" id="shap-panel" style="margin-top:20px">
+          <h2>Why the champion scores the way it does</h2>
+          <p class="sub" id="shap-sub">SHAP values on the test split: how much each variable pushes a case towards the outcome.</p>
+          <div class="grid two">
+            <div>
+              <h3 style="font-size:0.95rem;margin:0 0 4px">Mean |SHAP| by variable</h3>
+              <div id="shap-bar" class="chart"></div>
+            </div>
+            <div>
+              <h3 style="font-size:0.95rem;margin:0 0 4px">Beeswarm</h3>
+              <p class="sub">Each dot is a case; colour is the variable's value (cyan low → navy high). Dots to the right raise the risk.</p>
+              <div id="shap-bee" class="chart"></div>
+            </div>
+          </div>
+          <div class="grid three" id="shap-dep"></div>
         </section>
 
-        <section class="panel">
-          <h2>Top Feature Drivers</h2>
-          <div id="feature-chart" class="chart"></div>
+        <section class="panel" style="margin-top:20px">
+          <h2>Most important variables</h2>
+          <p class="sub">Information Value (IV) measures how well each variable separates the two outcomes on its own;
+            champion importance is what the winning model actually relies on. IV above 0.5 is suspiciously strong and worth checking for leakage.
+            Click a row to see its WOE bins (category labels are withheld; only counts and rates are shown).</p>
+          <div class="table-wrap"><table class="board features" id="features-table"></table></div>
         </section>
 
-        <section class="panel">
-          <h2>ROC Curve (Test)</h2>
-          <div id="roc-chart" class="chart"></div>
+        <!-- Diagnostics + drift -->
+        <div class="grid two">
+          <section class="panel" id="diag-panel" style="display:none">
+            <h2>Diagnostics</h2>
+            <p class="sub">Measured on the actual cohorts: uncertainty of the test AUC, duplicate rows between train and test, and data checks.</p>
+            <div class="stats" id="diag-tiles"></div>
+            <div id="diag-body" style="margin-top:14px"></div>
+          </section>
+          <section class="panel" id="drift-panel" style="display:none">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+              <h2 style="margin:0">Stability &amp; drift (PSI vs training)</h2>
+              <div class="toggle" id="drift-toggle"></div>
+            </div>
+            <p class="sub" id="drift-method"></p>
+            <div class="stats" id="drift-tiles" style="margin-bottom:10px"></div>
+            <div id="drift-chart" class="chart"></div>
+          </section>
+        </div>
+
+        <!-- Rows without an outcome -->
+        <section class="panel" id="unlabelled-panel" style="margin-top:20px;display:none">
+          <div class="section-title"><h2>Rows without an outcome</h2><span class="eyebrow">scored, never trained on</span></div>
+          <p class="sub" id="unlabelled-note"></p>
+          <div class="stats" id="unlabelled-tiles"></div>
+          <div class="chips" id="unlabelled-bands" style="margin-top:10px"></div>
+          <div class="btn-row"><button class="btn" id="unlabelled-download-btn">Download scored rows (CSV)</button></div>
+          <div class="status" id="unlabelled-status"><span class="pulse"></span><span class="text"></span></div>
+          <div class="error-box" id="unlabelled-error"></div>
         </section>
 
-        <section class="panel">
-          <h2>Confusion Matrix (Test)</h2>
-          <div id="confusion-chart" class="chart"></div>
+        <section class="panel" id="insights-panel" style="margin-top:20px">
+          <h2>AI insights</h2>
+          <p class="sub">Generated from aggregate metrics only; no row-level data is sent to the model.</p>
+          <div class="insight-section"><h3>Executive summary</h3><div class="note" id="insight-summary"></div></div>
+          <div class="insight-section"><h3>Champion analysis</h3><div class="note" id="insight-best-model"></div></div>
+          <div class="insight-section"><h3>Feature insights</h3><ul class="clean" id="insight-features"></ul></div>
+          <div class="insight-section"><h3>Risk flags</h3><ul class="clean" id="insight-flags"></ul></div>
+          <div class="insight-section"><h3>Recommendations</h3><ul class="clean" id="insight-recs"></ul></div>
+        </section>
+
+        <!-- Validation -->
+        <div class="grid two">
+          <section class="panel">
+            <h2>ROC curves · Test</h2>
+            <p class="sub">Champion highlighted; the dashed diagonal is a random guess.</p>
+            <div id="roc-chart" class="chart"></div>
+          </section>
+          <section class="panel">
+            <h2>Stability across cohorts</h2>
+            <p class="sub" id="stability-sub">ROC-AUC on Train, Validation, Calibration, Test and Out-of-Time. Flat lines are stable models.</p>
+            <div id="stability-chart" class="chart"></div>
+          </section>
+          <section class="panel">
+            <h2>Calibration · before vs after</h2>
+            <p class="sub" id="calib-sub">Predicted vs observed bad rate by decile; dashed = before calibration, solid = after; the diagonal is perfect.</p>
+            <div id="calib-chart" class="chart"></div>
+          </section>
+          <section class="panel">
+            <h2>Lift and gains · champion, Test</h2>
+            <p class="sub">Deciles from riskiest to safest: lift over the base rate and cumulative share of bads captured.</p>
+            <div id="lift-chart" class="chart"></div>
+          </section>
+          <section class="panel">
+            <h2>Model comparison · Test</h2>
+            <p class="sub">Discrimination and classification metrics side by side.</p>
+            <div id="metrics-chart" class="chart"></div>
+          </section>
+          <section class="panel">
+            <h2>Top drivers · champion</h2>
+            <p class="sub" id="feature-chart-sub">Features the champion relies on most.</p>
+            <div id="feature-chart" class="chart"></div>
+          </section>
+          <section class="panel">
+            <h2 id="confusion-title">Confusion matrix · champion, Test</h2>
+            <p class="sub" id="confusion-sub">Counts at the F1-optimal threshold.</p>
+            <div id="confusion-chart" class="chart"></div>
+          </section>
+          <section class="panel">
+            <h2>Dataset</h2>
+            <p class="sub" id="dataset-sub">Shape, validation design and class balance per cohort.</p>
+            <div class="stats" id="dataset-stats"></div>
+            <div class="split-badges" id="class-balance"></div>
+            <details class="cleanup" id="cleanup-details" style="display:none">
+              <summary>Input clean-up applied</summary>
+              <ul class="clean" id="cleanup-list"></ul>
+            </details>
+          </section>
+        </div>
+
+        <!-- Scoring -->
+        <section class="panel" id="scoring-panel" style="margin-top:20px">
+          <div class="section-title"><h2>Score new applications</h2><span class="eyebrow" id="scoring-model"></span></div>
+          <p class="sub">Enter the variables for a new case and get its Nu Score, band and the top factors raising risk. The training data is gone; only the model bundle answers.</p>
+          <div id="score-form" class="score-form"></div>
+          <div class="btn-row">
+            <button class="btn primary" id="score-btn">Score this application</button>
+            <button class="btn ghost" id="score-reset-btn">Reset to typical values</button>
+          </div>
+          <div class="status" id="score-status"><span class="pulse"></span><span class="text"></span></div>
+          <div class="error-box" id="score-error"></div>
+          <div id="score-out" class="score-out" style="display:none">
+            <div>
+              <svg class="gauge" id="gauge" viewBox="0 0 300 190" role="img" aria-label="Nu Score gauge"></svg>
+              <div class="gauge-band" id="gauge-band"></div>
+            </div>
+            <div>
+              <div class="stats" id="score-tiles"></div>
+              <h3 style="font-size:0.95rem;margin:16px 0 4px">Top factors raising risk</h3>
+              <ul class="reasons" id="score-reasons"></ul>
+            </div>
+          </div>
+
+          <h3 style="font-size:0.95rem;margin:26px 0 4px">Batch: score a file</h3>
+          <p class="sub">Upload a CSV of new applications. Columns can be named differently from the training data; the engine maps them and shows you how.</p>
+          <div class="upload-area compact" id="batch-area" tabindex="0">
+            <input type="file" id="batch-file-input" accept=".csv" />
+            <p class="title" id="batch-title">Drop a CSV here, or click to choose</p>
+          </div>
+          <div class="status" id="batch-status"><span class="pulse"></span><span class="text"></span></div>
+          <div class="error-box" id="batch-error"></div>
+          <div id="batch-out" style="display:none;margin-top:14px">
+            <p class="sub" id="batch-summary"></p>
+            <div class="table-wrap"><table class="board mapping" id="mapping-table"></table></div>
+            <div id="batch-drift" style="margin-top:12px"></div>
+            <div class="btn-row">
+              <button class="btn" id="batch-download-btn">Download scored CSV</button>
+            </div>
+          </div>
         </section>
       </div>
     </main>
 
-    <script src="./app.js"></script>
+    <footer>Nu Score On the Go · Northern Arc / AltiFi internal analytics</footer>
+
+    <script src="app.js"></script>
   </body>
 </html>

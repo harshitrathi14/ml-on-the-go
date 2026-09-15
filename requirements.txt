@@ -14,6 +14,18 @@ xgboost>=2.0
 lightgbm>=4.0
 optuna>=3.5
 
+catboost>=1.2
+
+# Large-file processing (streaming CSV -> Parquet, SQL profiling and joins)
+polars>=1.0
+duckdb>=1.0
+
+# Deep learning / transformers (install torch with the CUDA build for your host, e.g.
+#   pip install torch --index-url https://download.pytorch.org/whl/cu124)
+torch>=2.4
+transformers>=4.40
+sentence-transformers>=3.0
+
 # Explainability
 shap>=0.44
 

@@ -1,6 +1,9 @@
 """
 Abstract base class for AI provider clients.
-All providers implement analyze_csv_metadata and explain_model_results.
+All providers implement analyze_csv_metadata and explain_model_results;
+complete_json is a generic structured call used by newer features
+(source-role assignment, identifier matching) and falls back to the
+caller-supplied default when the provider cannot answer.
 """
 
 from __future__ import annotations
@@ -26,3 +29,7 @@ class AIClient(ABC):
     ) -> dict:
         """Return plain-English explanation of training results."""
         ...
+
+    def complete_json(self, system_prompt: str, user_prompt: str, fallback: dict) -> dict:
+        """Ask the model for a JSON object; return ``fallback`` if unavailable."""
+        return fallback

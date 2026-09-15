@@ -103,6 +103,15 @@ class OpenAICompatClient(AIClient):
         raw = self._call(prompt, EXPLAIN_SYSTEM)
         return safe_parse(raw, fallback_explain())
 
+    def complete_json(self, system_prompt: str, user_prompt: str, fallback: dict) -> dict:
+        try:
+            raw = self._call(user_prompt, system_prompt)
+        except Exception as exc:  # network / model errors must not break the flow
+            import logging
+            logging.getLogger(__name__).warning("AI call failed: %s", exc)
+            return fallback
+        return safe_parse(raw, fallback)
+
     def _call(self, user_prompt: str, system_prompt: str) -> str:
         response = self._client.chat.completions.create(
             model=self._model,

@@ -344,7 +344,7 @@ def _chart_feature_importance(best: dict) -> Optional[plt.Figure]:
 
 
 def _chart_stability(results: List[dict]) -> plt.Figure:
-    splits = ["train", "test", "oot", "etrc"]
+    splits = ["train", "validation", "test", "oot"]
     models = [r["name"] for r in results]
     data = np.array([
         [((r.get("metrics") or {}).get(s) or {}).get("roc_auc", 0) for s in splits]
@@ -556,7 +556,7 @@ def generate_html_report(
         </tr>"""
 
     # Build per-model metrics table
-    splits = ["train", "test", "oot", "etrc"]
+    splits = ["train", "validation", "test", "oot"]
     metric_keys = ["roc_auc", "f1", "precision", "recall"]
     model_sections = ""
     for r in results:
@@ -1212,7 +1212,7 @@ def generate_pdf_report(
 
     # --- Per-model metrics ---
     story.append(Paragraph("Model Metrics by Split", S["h2"]))
-    splits = ["train", "test", "oot", "etrc"]
+    splits = ["train", "validation", "test", "oot"]
     metric_keys = ["ROC-AUC", "F1", "Precision", "Recall"]
     mk_map = {"ROC-AUC": "roc_auc", "F1": "f1", "Precision": "precision", "Recall": "recall"}
 
@@ -1226,7 +1226,7 @@ def generate_pdf_report(
                 val = m.get(mk, 0) if isinstance(m, dict) else getattr(m, mk, 0)
                 row_d.append(f"{val:.4f}")
             mdata.append(row_d)
-        mt = Table(mdata, colWidths=[W * .26] + [W * .185] * 4)
+        mt = Table(mdata, colWidths=[W * .26] + [W * .185] * len(splits))
         mt.setStyle(_base_table_style())
         story.append(mt)
 
