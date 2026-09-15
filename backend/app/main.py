@@ -705,5 +705,8 @@ def report_pdf(request: ReportRequest) -> Response:
 app.include_router(router, prefix="/api")
 app.include_router(router)
 
+from .docs_pages import router as docs_router  # noqa: E402
+app.include_router(docs_router)
+
 if FRONTEND_DIR.is_dir():
     app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")

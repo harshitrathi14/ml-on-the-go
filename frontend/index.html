@@ -58,6 +58,10 @@
       .logos { display: flex; align-items: center; gap: 18px; }
       .logos img { height: 30px; width: auto; display: block; }
       .logos .divider { width: 1px; height: 26px; background: rgba(255,255,255,0.22); }
+      .topbar-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: flex-end; }
+      .doc-link { color: #dff5fa; text-decoration: none; font-size: 0.86rem; font-weight: 600; border-bottom: 1px solid rgba(79,198,224,0.45); padding-bottom: 1px; }
+      .doc-link:hover { color: var(--cyan); }
+      .footer-link { color: var(--cyan-deep); text-decoration: none; font-weight: 600; }
       .env-chip {
         font-size: 0.74rem;
         font-family: var(--mono);
@@ -527,7 +531,7 @@
         <span class="divider"></span>
         <img src="brand/altifi_logo_light.png" alt="AltiFi" />
       </div>
-      <span class="env-chip">INTERNAL · ON-PREM · GPU</span>
+      <div class="topbar-right"><a class="doc-link" href="guide">Usage guide</a><a class="doc-link" href="downloads/Nu_Score_On_the_Go.pptx">Product deck</a><span class="env-chip">INTERNAL · ON-PREM · GPU</span></div>
     </div>
 
     <header class="hero">
@@ -1002,7 +1006,8 @@
       </div>
     </main>
 
-    <footer>Nu Score On the Go · Northern Arc / AltiFi internal analytics</footer>
+    <footer>Nu Score On the Go · Northern Arc / AltiFi internal analytics ·
+      <a href="guide" class="footer-link">Usage guide</a> · <a href="downloads/Nu_Score_On_the_Go.pptx" class="footer-link">Product deck</a></footer>
 
     <script src="app.js"></script>
   </body>

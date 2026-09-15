@@ -52,3 +52,7 @@ jinja2>=3.1
 # AI / LLM (all optional — install the ones you need)
 anthropic>=0.25
 openai>=1.0
+
+# Documentation pages served by the portal
+markdown>=3.5
+python-pptx>=1.0
